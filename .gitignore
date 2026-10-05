@@ -1,0 +1,27 @@
+# Build and simulation output
+build/*
+!build/.gitkeep
+reports/*
+!reports/.gitkeep
+testdata/output/*
+!testdata/output/.gitkeep
+*.vcd
+*.fst
+*.wlf
+*.log
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.Xil/
+*.jou
+*.str
+*.xpr
+*.runs/
+*.cache/
+*.gen/
+*.sim/
+*.hw/
+.vscode/
+.idea/
+.DS_Store

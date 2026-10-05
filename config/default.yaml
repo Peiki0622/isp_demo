@@ -1,0 +1,28 @@
+image:
+  width: 768
+  height: 512
+  bayer: RGGB
+  raw_bits: 12
+  sram_word_bits: 16
+pipeline:
+  blc: true
+  raw_nr: false
+  awb_gain: true
+  demosaic: true
+  ccm: true
+  rgb2ycbcr: true
+  chroma_nr: false
+  hue: false
+  lcc: false
+  edge_enhance: false
+blc:
+  offset: 0
+awb_gain:
+  r: 1.0
+  g: 1.0
+  b: 1.0
+ccm:
+  matrix:
+    - [1.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0]
+    - [0.0, 0.0, 1.0]

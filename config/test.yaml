@@ -1,0 +1,6 @@
+image:
+  width: 16
+  height: 16
+  bayer: RGGB
+  raw_bits: 12
+  sram_word_bits: 16
