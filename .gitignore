@@ -5,6 +5,10 @@ reports/*
 !reports/.gitkeep
 testdata/output/*
 !testdata/output/.gitkeep
+# 可由 make patterns 重建的向量；保留 synthetic/README.md 与 .gitkeep。
+testdata/synthetic/*.mem
+testdata/synthetic/*.npy
+testdata/synthetic/*.json
 *.vcd
 *.fst
 *.wlf

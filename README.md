@@ -2,7 +2,35 @@
 
 基于 Cortex-M0 控制面的 ISP SoC 复现项目。当前阶段先不复现 SD 卡输入，改为从 SRAM（静态随机存取存储器）读取拜耳原始图像，完成可验证的流式 ISP（图像信号处理器）链路；待图像流水线稳定后，再接入 AHB（高级高性能总线）寄存器控制与 Cortex-M0。
 
-## 当前目标
+## 当前进度与最短运行命令
+
+P0/P1 已完成：确定性图案 → 一周期同步 SRAM → SRAM Reader → 顶层 RAW
+像素流 → 两帧独立 dump → 精确逐像素比较。Reader 使用三段式状态机，锁存尺寸，
+处理读延迟、坐标、行帧标志和复位；顶层尚未接入 BLC 或后续算法。
+
+在仓库根目录执行：
+
+```sh
+make test-p0-p1
+```
+
+依赖本机现有 `vcs`、Python 3、NumPy、Make 和 Bash；本轮验证使用 VCS
+W-2024.09、Python 3.6.6、NumPy 1.19.5。可用 `make test-p0-p1 VCS=/path/to/vcs
+PYTHON=/path/to/python3` 显式指定已安装的工具，不配置或修改许可证环境。
+
+命令包含 11 项 Python 工具测试、SRAM 模型测试、Reader 边界回归、四种
+16×16 图案各两帧的顶层仿真与精确比较，全部通过才打印 `P0/P1 PASS`。
+任何失败都返回非零；VCS 的 `$fatal` 即使返回 0，也会被运行脚本识别。
+
+`make patterns` 只生成向量，`make test-sram-reader` 单独验证 Reader，
+`make compare-p0-p1` 重新比较已有顶层 dump。编译、日志、版本和命令记录集中在
+`build/p0_p1/`，像素 dump 集中在 `testdata/output/p0_p1/`，可重建向量位于
+`testdata/synthetic/`。`make clean` 只清理这些任务产物，不清空其他运行目录。
+
+周期约定见 `docs/memory_map.md`，验收方法及证据位置见 `docs/verification.md`，
+逐步执行记录见 `plans/001_p0_p1_sram_bootstrap.md`。
+
+## 后续完整 ISP 目标
 
 第一版端到端链路：
 
