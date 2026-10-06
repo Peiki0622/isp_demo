@@ -466,15 +466,15 @@ rtl: implement streaming mirrored 3x3 window generator
 
 要求：
 
-- [ ] 实例化/消费已验收 window_3x3。
-- [ ] 按 center x/y 奇偶选择 R/Gr/Gb/B 公式。
-- [ ] 13/14 位中间和，不能 RAW12 先溢出。
-- [ ] /2 加 1 后右移 1。
-- [ ] /4 加 2 后右移 2。
-- [ ] RGB 输出一级寄存。
-- [ ] x/y、valid、flags 同步。
-- [ ] out_frame_done 和最后 RGB 像素同拍。
-- [ ] busy 覆盖 window tail + 最终 RGB register drain。
+- [x] 实例化/消费已验收 window_3x3。
+- [x] 按 center x/y 奇偶选择 R/Gr/Gb/B 公式。
+- [x] 13/14 位中间和，不能 RAW12 先溢出。
+- [x] /2 加 1 后右移 1。
+- [x] /4 加 2 后右移 2。
+- [x] RGB 输出一级寄存。
+- [x] x/y、valid、flags 同步。
+- [x] out_frame_done 和最后 RGB 像素同拍。
+- [x] busy 覆盖 window tail + 最终 RGB register drain。
 
 单元测试使用 Python 生成或独立整数 oracle，不读取 DUT 内部状态。
 
@@ -674,7 +674,7 @@ Codex 每完成一步更新实际提交哈希。
 | 3 | 完成 | 66c1507 | make test-tools test-demosaic-tools | 旧11项和新6项工具测试 PASS；RGB 文件严格校验 |
 | 4 | 完成 | 43dc99b | make test-p3-awb; exact migration check | 完整 P0-P3 PASS；C4 与全部旧周期断言保留 |
 | 5 | 完成 | 591e894 | make test-window-3x3 | 64帧22004窗口198036样本；宽4095/4096、复位、负例及硬件拒绝 PASS |
-| 6 | 未开始 | — | — | — |
+| 6 | 完成 | e7b4314 | make test-demosaic-unit | 64帧2566 RGB像素7698通道；寄存/复位/负例/硬件拒绝 PASS |
 | 7 | 未开始 | — | — | — |
 | 8 | 未开始 | — | — | — |
 | 9 | 未开始 | — | — | — |
@@ -697,3 +697,5 @@ Raw NR 继续暂时旁路，待 RAW→RGB→CCM 主链稳定后再作为独立�
 - 正式 top 合法启动锁存尺寸，BLC/AWB 仍各自在 C3/C4 采样配置。
 - 逐阶段回读原 Step 和本补充，完成后记录实际提交与验收，不跳过完整回归。
 - 所有新 RTL 无 function；必要窗口 FSM 采用三段式，寄存器按职责分块。
+
+- Step 7 为独立黄金验收正式 top，提前建立 Step 8 的 CLI、集成平台和运行脚本；先验收五种小尺寸控制，Step 8 再验收 CLI 失败和四图案两帧。没有临时复制数值算法的顶层平台。
