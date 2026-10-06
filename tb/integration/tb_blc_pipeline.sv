@@ -27,7 +27,7 @@ module tb_blc_pipeline;
     sram_model #(.ADDR_W(8), .DEPTH(256)) memory (
         .clk(clk), .addr(sram_addr), .rdata(sram_rdata)
     );
-    isp_pipeline_top #(.ADDR_W(8)) dut (
+    blc_pipeline #(.ADDR_W(8)) dut (
         // 时钟、帧控制和算法配置。
         .clk(clk), .rst_n(rst_n), .start(start), .image_width(image_width),
         .image_height(image_height), .black_level(black_level), .busy(busy),

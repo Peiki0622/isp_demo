@@ -27,7 +27,7 @@ if [[ $selection == all ]]; then
         done
     done
     sources=("$ROOT/tb/integration/tb_blc_pipeline.sv" "$ROOT/tb/models/sram_model.sv" \
-             "$ROOT/rtl/top/isp_pipeline_top.sv" "$ROOT/rtl/top/sram_raw_source.sv" \
+             "$ROOT/rtl/top/blc_pipeline.sv" "$ROOT/rtl/top/sram_raw_source.sv" \
              "$ROOT/rtl/memory/sram_reader.sv" "$ROOT/rtl/raw_domain/blc.sv")
     compile_vcs "$directory" tb_blc_pipeline "${sources[@]}"
     args=("+MEM_FILE=$ROOT/testdata/synthetic/flat_16x16.mem" \
