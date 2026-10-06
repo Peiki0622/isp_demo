@@ -1,5 +1,7 @@
 # P4 处理结果的 PNG 预览
 
+无参数入口继续保持 P4 行为。新增 P5 用法见 [CCM PNG 预览](p5_png_preview.md)。
+
 PNG 展示正式 RTL 流水线的实际输出，数据链路为 RGGB RAW12 → BLC →
 AWB Gain → 双线性 Demosaic → RGB12。原始图案是确定性的 16×16 合成测试
 图像；这个预览用于观察颜色、边缘和参数变化，数值验收仍由 RGB36 精确比较完成。

@@ -97,57 +97,57 @@ module tb_ccm;
     task automatic matrix_profile(input int profile);
         for (int row=0;row<3;row++) for (int col=0;col<3;col++) external_matrix[row][col]=0;
         case (profile)
-            0: begin
+            0: begin // identity：固定两级，精确恢复高位RGB正数。
                 external_matrix[0][0]=4096; external_matrix[0][1]=0; external_matrix[0][2]=0;
                 external_matrix[1][0]=0; external_matrix[1][1]=4096; external_matrix[1][2]=0;
                 external_matrix[2][0]=0; external_matrix[2][1]=0; external_matrix[2][2]=4096;
             end
-            1: begin
+            1: begin // zero：验证全零也不旁路有效位。
                 external_matrix[0][0]=0; external_matrix[0][1]=0; external_matrix[0][2]=0;
                 external_matrix[1][0]=0; external_matrix[1][1]=0; external_matrix[1][2]=0;
                 external_matrix[2][0]=0; external_matrix[2][1]=0; external_matrix[2][2]=0;
             end
-            2: begin
+            2: begin // R/B交换：检查通道连接，另用非对称矩阵排除转置。
                 external_matrix[0][0]=0; external_matrix[0][1]=0; external_matrix[0][2]=4096;
                 external_matrix[1][0]=0; external_matrix[1][1]=4096; external_matrix[1][2]=0;
                 external_matrix[2][0]=4096; external_matrix[2][1]=0; external_matrix[2][2]=0;
             end
-            3: begin
+            3: begin // 矩阵C：大于一和负系数，三项累加覆盖fractional。
                 external_matrix[0][0]=5120; external_matrix[0][1]=-512; external_matrix[0][2]=-512;
                 external_matrix[1][0]=-256; external_matrix[1][1]=4608; external_matrix[1][2]=-256;
                 external_matrix[2][0]=-512; external_matrix[2][1]=-512; external_matrix[2][2]=5120;
             end
-            4: begin
+            4: begin // 矩阵D：显式上饱和与负值下钳位。
                 external_matrix[0][0]=8192; external_matrix[0][1]=0; external_matrix[0][2]=0;
                 external_matrix[1][0]=0; external_matrix[1][1]=-4096; external_matrix[1][2]=8192;
                 external_matrix[2][0]=-4096; external_matrix[2][1]=0; external_matrix[2][2]=8192;
             end
-            5: begin
+            5: begin // 非对称矩阵：三个输出手算不同，矩阵转置会失败。
                 external_matrix[0][0]=4096; external_matrix[0][1]=2048; external_matrix[0][2]=0;
                 external_matrix[1][0]=0; external_matrix[1][1]=4096; external_matrix[1][2]=-1024;
                 external_matrix[2][0]=1024; external_matrix[2][1]=0; external_matrix[2][2]=4096;
             end
-            6: begin
+            6: begin // 三个0.5对角系数：half-up中点与两侧。
                 external_matrix[0][0]=2048; external_matrix[0][1]=0; external_matrix[0][2]=0;
                 external_matrix[1][0]=0; external_matrix[1][1]=2048; external_matrix[1][2]=0;
                 external_matrix[2][0]=0; external_matrix[2][1]=0; external_matrix[2][2]=2048;
             end
-            7: begin
+            7: begin // +1.5/-0.5混合：宽位符号传播与抵消。
                 external_matrix[0][0]=6144; external_matrix[0][1]=-2048; external_matrix[0][2]=0;
                 external_matrix[1][0]=-2048; external_matrix[1][1]=6144; external_matrix[1][2]=0;
                 external_matrix[2][0]=0; external_matrix[2][1]=-2048; external_matrix[2][2]=6144;
             end
-            8: begin
+            8: begin // 全部最大32767：完整正乘积及三项和保护位。
                 external_matrix[0][0]=32767; external_matrix[0][1]=32767; external_matrix[0][2]=32767;
                 external_matrix[1][0]=32767; external_matrix[1][1]=32767; external_matrix[1][2]=32767;
                 external_matrix[2][0]=32767; external_matrix[2][1]=32767; external_matrix[2][2]=32767;
             end
-            9: begin
+            9: begin // 全部最小-32768：负乘积符号扩展和下钳位。
                 external_matrix[0][0]=-32768; external_matrix[0][1]=-32768; external_matrix[0][2]=-32768;
                 external_matrix[1][0]=-32768; external_matrix[1][1]=-32768; external_matrix[1][2]=-32768;
                 external_matrix[2][0]=-32768; external_matrix[2][1]=-32768; external_matrix[2][2]=-32768;
             end
-            10: begin
+            10: begin // 32767/-32768/+1：高幅乘积抵消，和为零或接近零。
                 external_matrix[0][0]=32767; external_matrix[0][1]=-32768; external_matrix[0][2]=1;
                 external_matrix[1][0]=32767; external_matrix[1][1]=-32768; external_matrix[1][2]=1;
                 external_matrix[2][0]=32767; external_matrix[2][1]=-32768; external_matrix[2][2]=1;
