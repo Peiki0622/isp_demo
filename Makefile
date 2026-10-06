@@ -57,3 +57,8 @@ test-blc-unit:
 # P2 集成使用与 P0/P1 相同的确定性输入，由独立 BLC 模型生成 expected。
 test-blc-pipeline: patterns
 	bash scripts/run_blc_pipeline.sh
+
+.PHONY: compare-p2-blc
+# 只重新比较已有 P2 dump，不重新生成 expected 或掩盖被破坏的输出。
+compare-p2-blc:
+	bash scripts/run_blc_pipeline.sh compare
