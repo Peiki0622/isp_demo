@@ -351,18 +351,18 @@ refactor: preserve verified BLC pipeline boundary
 
 要求：
 
-- [ ] valid+sof 同时锁存三路增益。
-- [ ] 首像素直接使用当拍新 gain。
-- [ ] 帧内变化被忽略。
-- [ ] RGGB 四位置选择正确。
-- [ ] 乘积保留完整位宽。
-- [ ] 加 2048 后右移 12 位完成 round-half-up。
-- [ ] 大于 4095 饱和为 4095。
-- [ ] 固定一级寄存输出。
-- [ ] 全部侧带同拍。
-- [ ] 无效周期标志归零。
-- [ ] 可综合路径不使用 testbench system task。
-- [ ] 不实现 gain 自动估计。
+- [x] valid+sof 同时锁存三路增益。
+- [x] 首像素直接使用当拍新 gain。
+- [x] 帧内变化被忽略。
+- [x] RGGB 四位置选择正确。
+- [x] 乘积保留完整位宽。
+- [x] 加 2048 后右移 12 位完成 round-half-up。
+- [x] 大于 4095 饱和为 4095。
+- [x] 固定一级寄存输出。
+- [x] 全部侧带同拍。
+- [x] 无效周期标志归零。
+- [x] 可综合路径不使用 testbench system task。
+- [x] 不实现 gain 自动估计。
 
 建议提交信息：
 
@@ -588,7 +588,7 @@ Codex 每完成一步更新实际提交哈希。
 | 1 | 完成 | 6e9ca6461d5da3a9fd108914b678d76a65bed742 | git diff --check; manual contract review | UQ4.12、RGGB、帧首采样和一级流水已明确；AWB 待最终验收启用 |
 | 2 | 完成 | ef9813e18748307c942526a22c07cc891891aad5 | make test-blc-model test-awb-model | 11 项 P2 + 7 项 AWB 测试；11 个边界增益穷举全部 RAW12 |
 | 3 | 完成 | 559d387fae4d9e5653da594b8930e83dc298a6a9 | make test-p2-blc | P0/P1 + P2 全通过；源码等价迁移，C3 断言未修改 |
-| 4 | 未开始 | — | — | — |
+| 4 | 完成 | bcc9c0e6823169ccfc7a33e54755972291cfa77a | VCS W-2024.09 +define+SYNTHESIS compile; RTL review | 28 位乘积、29 位偏置和宽位饱和；分类寄存器、无 function |
 | 5 | 未开始 | — | — | — |
 | 6 | 未开始 | — | — | — |
 | 7 | 未开始 | — | — | — |
