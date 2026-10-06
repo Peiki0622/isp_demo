@@ -5,6 +5,7 @@ export PYTHON VCS
 export PYTHONDONTWRITEBYTECODE := 1
 
 .PHONY: help patterns test-tools test-sram-model test-sram-reader test-pipeline test-p0-p1 compare-p0-p1 clean
+.PHONY: test-blc-model
 help:
 	@echo "make patterns          - generate four deterministic 16x16 RAW12 patterns"
 	@echo "make test-sram-reader  - VCS reader regression and exact dump comparison"
@@ -17,6 +18,10 @@ patterns:
 
 test-tools:
 	$(PYTHON) -m unittest discover -s tools/tests -p 'test_*.py' -v
+
+# 软件黄金模型单独验收；使用标准库 unittest，不增加测试框架依赖。
+test-blc-model:
+	$(PYTHON) -m unittest discover -s model/tests -p 'test_*.py' -v
 
 test-sram-model: patterns
 	bash scripts/run_unit_tests.sh model
