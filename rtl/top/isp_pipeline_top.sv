@@ -1,79 +1,83 @@
-// P2 正式流水线：同步 SRAM -> Reader-only Source -> 一级 BLC -> RAW12。
-// Source 保留 C2 首像素；BLC 后公开首像素为 C3，吞吐仍为一拍一像素。
+// P3 正式流水线：同步 SRAM -> Reader -> BLC -> AWB Gain -> RAW12。
+// 独立 blc_pipeline 保留 C3 边界；最终输出 C4，仍为每拍一个像素。
 module isp_pipeline_top #(
-    parameter int ADDR_W = 20, // 与外部 SRAM 地址总线匹配。
-    parameter int PIXEL_W = 12 // 默认 RAW12，源与 BLC 的像素位宽一致。
+    parameter int ADDR_W = 20, // 匹配外部 SRAM 地址宽度，容量由 Reader 检查。
+    parameter int PIXEL_W = 12 // P3 数值契约为 RAW12。
 ) (
-    // 时钟/复位模块：Source、BLC 和启动历史均使用同步低有效复位。
+    // 时钟/复位模块：全部流水级及启动历史使用同步低有效复位。
     input  logic               clk,
     input  logic               rst_n,
 
-    // 帧控制模块：仅整个流水线空闲时接受新的 start 上升沿。
-    // 宽高由 Source 在合法启动时锁存，busy 包含 BLC 最后有效输出周期。
+    // 帧控制模块：仅整条链路空闲时接受 start 的新上升沿。
+    // Reader 在该沿锁存尺寸；busy 包含 AWB 最后有效输出周期。
     input  logic               start,
     input  logic [15:0]        image_width,
     input  logic [15:0]        image_height,
     output logic               busy,
 
-    // 算法配置模块：BLC 在消费有效首像素的沿采样，而不是 start 沿。
-    // 当前帧后续修改不会改变像素结果；零偏置仍保留固定一级寄存。
+    // 算法配置模块：BLC 与 AWB 分别在各自的 valid+sof 沿锁存配置。
+    // 黑电平为 RAW12 整数，三增益为 UQ4.12 编码（4096 为 1 倍）。
+    // C0 启动不锁存算法配置：首像素处 BLC=C3、AWB=C4 分别采样。
     input  logic [PIXEL_W-1:0] black_level,
+    input  logic [15:0]        gain_r,
+    input  logic [15:0]        gain_g,
+    input  logic [15:0]        gain_b,
 
-    // SRAM 模块：地址由 Source 提供，返回字是一个上升沿寄存的 16 位数据。
+    // SRAM 模块：请求地址来自 Reader，返回字为一周期同步 16 位数据。
     output logic [ADDR_W-1:0]  sram_addr,
     input  logic [15:0]        sram_rdata,
 
-    // BLC 输出载荷模块：valid 限定数据和 16 位光栅坐标，无反压。
+    // 最终载荷模块：AWB 后有效 RAW12 及对应 16 位光栅坐标，无反压。
     output logic               pixel_valid,
     output logic [PIXEL_W-1:0] pixel_data,
     output logic [15:0]        pixel_x,
     output logic [15:0]        pixel_y,
 
-    // BLC 输出帧标志模块：与对应像素同步；无效周期全部为零。
-    // frame_done 与末像素同拍，busy 在其后的上升沿才解除。
+    // 最终帧标志模块：首像素/行末/帧末与数据同拍，无效拍标志全部为零。
+    // 最后 frame_done 拍 busy 仍为 1，下一上升沿才解除。
     output logic               sof,
     output logic               eol,
     output logic               frame_done
 );
-    // Source 内部 RAW 流：公开像素端口只连接 BLC，避免混淆两级时序。
-    logic raw_busy, raw_valid, raw_sof, raw_eol, raw_frame_done;
-    logic [PIXEL_W-1:0] raw_pixel;
-    logic [15:0] raw_x, raw_y;
-    logic start_q, source_start;
+    // BLC-only 级间流：该级完整保留 Source 和 BLC 的原有时序/控制行为。
+    logic blc_busy, blc_valid, blc_sof, blc_eol, blc_frame_done;
+    logic [PIXEL_W-1:0] blc_pixel;
+    logic [15:0] blc_x, blc_y;
+    logic start_q, blc_start;
 
-    // Source 最后有效拍仍 busy；下一拍 BLC 输出末像素时 valid 接续 busy。
-    // 这里只对寄存输出做 OR，不增加流水级、不在像素减法热路径上反馈。
-    assign busy = raw_busy || pixel_valid;
+    // BLC 最后有效输出由 blc_busy 覆盖；AWB 最后输出由最终 valid 接续。
+    // 直接组合 OR 寄存状态，不增加输出级，也不反馈到乘法数值热路径。
+    assign busy = blc_busy || pixel_valid;
 
-    // 外部边沿历史必须在忙时也更新：简单 start & !busy 门控会将一个
-    // 忙时保持高电平误变成空闲后的新上升沿。只转发原始输入的新边沿。
+    // 每拍保存原始 start，包括忙时边沿，避免 held-high 在解除 busy 后重启。
+    // 本层过滤 AWB-only 排空周期；blc_pipeline 保留自己的历史边界过滤。
     always_ff @(posedge clk) begin
         if (!rst_n)
             start_q <= 1'b0;
         else
             start_q <= start;
     end
-    assign source_start = start && !start_q && !busy;
+    assign blc_start = start && !start_q && !busy;
 
-    sram_raw_source #(.ADDR_W(ADDR_W), .PIXEL_W(PIXEL_W)) source (
-        // 时钟、资格已过滤的启动及尺寸；零尺寸/容量检查仍由 Reader 执行。
-        .clk(clk), .rst_n(rst_n), .start(source_start),
-        .image_width(image_width), .image_height(image_height), .busy(raw_busy),
-        // 外部同步 SRAM。
-        .sram_addr(sram_addr), .sram_rdata(sram_rdata),
-        // 内部 RAW 流及全部侧带。
-        .pixel_valid(raw_valid), .pixel_data(raw_pixel), .pixel_x(raw_x), .pixel_y(raw_y),
-        .sof(raw_sof), .eol(raw_eol), .frame_done(raw_frame_done)
+    blc_pipeline #(.ADDR_W(ADDR_W), .PIXEL_W(PIXEL_W)) black_level_stage (
+        // 时钟、整链路资格过滤后的启动及原始帧尺寸。
+        .clk(clk), .rst_n(rst_n), .start(blc_start),
+        .image_width(image_width), .image_height(image_height), .busy(blc_busy),
+        // SRAM 接口及 BLC 配置。
+        .sram_addr(sram_addr), .sram_rdata(sram_rdata), .black_level(black_level),
+        // 一级 BLC 流，全部侧带传给 AWB。
+        .pixel_valid(blc_valid), .pixel_data(blc_pixel), .pixel_x(blc_x), .pixel_y(blc_y),
+        .sof(blc_sof), .eol(blc_eol), .frame_done(blc_frame_done)
     );
 
-    blc #(.PIXEL_W(PIXEL_W)) correction (
-        // 与 Source 相同的同步时钟和复位。
+    awb_gain #(.PIXEL_W(PIXEL_W), .GAIN_W(16), .FRAC_W(12)) white_balance_stage (
+        // 时钟及与 BLC 一致的同步复位。
         .clk(clk), .rst_n(rst_n),
-        // 完整输入流与帧首采样配置。
-        .in_valid(raw_valid), .in_pixel(raw_pixel), .in_x(raw_x), .in_y(raw_y),
-        .in_sof(raw_sof), .in_eol(raw_eol), .in_frame_done(raw_frame_done),
-        .black_level(black_level),
-        // 正式顶层只输出 BLC 的寄存结果。
+        // BLC 寄存输出及三路帧首采样配置。
+        .in_valid(blc_valid), .in_pixel(blc_pixel), .in_x(blc_x), .in_y(blc_y),
+        .in_sof(blc_sof), .in_eol(blc_eol), .in_frame_done(blc_frame_done),
+        .gain_r(gain_r), .gain_g(gain_g), .gain_b(gain_b),
+        // 公开输出只连接 AWB 寄存结果，保证固定 C4 首像素。
         .out_valid(pixel_valid), .out_pixel(pixel_data), .out_x(pixel_x), .out_y(pixel_y),
         .out_sof(sof), .out_eol(eol), .out_frame_done(frame_done)
     );
