@@ -433,18 +433,18 @@ refactor: preserve verified AWB pipeline boundary
 
 要求：
 
-- [ ] 不保存整帧。
-- [ ] 最多 3 行存储。
-- [ ] 支持奇数/偶数宽度。
-- [ ] mirror 四角、四边精确正确。
-- [ ] 输出坐标严格 raster order。
-- [ ] 恰好 W×H 个 window。
-- [ ] 第一个 window 到最后一个 window 连续每拍 valid。
-- [ ] tail flush 完成前 busy 保持。
-- [ ] frame_done 只在最后窗口。
-- [ ] reset 中止当前帧并清理 tail。
-- [ ] 输入下一帧必须等 busy=0。
-- [ ] width>MAX_WIDTH、W<2、H<2 明确拒绝。
+- [x] 不保存整帧。
+- [x] 最多 3 行存储。
+- [x] 支持奇数/偶数宽度。
+- [x] mirror 四角、四边精确正确。
+- [x] 输出坐标严格 raster order。
+- [x] 恰好 W×H 个 window。
+- [x] 第一个 window 到最后一个 window 连续每拍 valid。
+- [x] tail flush 完成前 busy 保持。
+- [x] frame_done 只在最后窗口。
+- [x] reset 中止当前帧并清理 tail。
+- [x] 输入下一帧必须等 busy=0。
+- [x] width>MAX_WIDTH、W<2、H<2 明确拒绝。
 
 测试不允许只检查中心 pixel；9 个 window sample 必须全部核对。
 
@@ -673,7 +673,7 @@ Codex 每完成一步更新实际提交哈希。
 | 2 | 完成 | 709c6c4 | make test-blc-model test-awb-model test-demosaic-model | 旧22项及新6项模型测试 PASS |
 | 3 | 完成 | 66c1507 | make test-tools test-demosaic-tools | 旧11项和新6项工具测试 PASS；RGB 文件严格校验 |
 | 4 | 完成 | 43dc99b | make test-p3-awb; exact migration check | 完整 P0-P3 PASS；C4 与全部旧周期断言保留 |
-| 5 | 未开始 | — | — | — |
+| 5 | 完成 | 591e894 | make test-window-3x3 | 64帧22004窗口198036样本；宽4095/4096、复位、负例及硬件拒绝 PASS |
 | 6 | 未开始 | — | — | — |
 | 7 | 未开始 | — | — | — |
 | 8 | 未开始 | — | — | — |

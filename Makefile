@@ -49,6 +49,9 @@ test-demosaic-model:
 test-window-3x3:
 	bash scripts/run_window_3x3.sh
 
+test-demosaic-unit:
+	bash scripts/run_demosaic_unit.sh
+
 test-sram-model: patterns
 	bash scripts/run_unit_tests.sh model
 
