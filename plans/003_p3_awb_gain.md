@@ -226,13 +226,13 @@ SRAM → blc_pipeline → awb_gain → final RAW stream
 
 动作：
 
-- [ ] 写入 UQ4.12、round-half-up、RAW12 saturation 契约。
-- [ ] 明确本模块只是 AWB Gain，不是完整自动白平衡估计。
-- [ ] 明确 RGGB 位置译码。
-- [ ] 明确一级寄存延迟和帧首采样三增益。
-- [ ] 清理 config/default.yaml：未实现的 demosaic、ccm、rgb2ycbcr 必须 false。
-- [ ] P3 完成后的默认使能只反映已经实现的 BLC 和 AWB Gain。
-- [ ] AWB 配置改为明确的寄存器编码值，建议：
+- [x] 写入 UQ4.12、round-half-up、RAW12 saturation 契约。
+- [x] 明确本模块只是 AWB Gain，不是完整自动白平衡估计。
+- [x] 明确 RGGB 位置译码。
+- [x] 明确一级寄存延迟和帧首采样三增益。
+- [x] 清理 config/default.yaml：未实现的 demosaic、ccm、rgb2ycbcr 必须 false。
+- [x] P3 完成后的默认使能只反映已经实现的 BLC 和 AWB Gain。
+- [x] AWB 配置改为明确的寄存器编码值，建议：
   - r: 4096
   - g: 4096
   - b: 4096
@@ -585,7 +585,7 @@ Codex 每完成一步更新实际提交哈希。
 | Step | 状态 | 提交 | 验证命令 | 备注 |
 |---|---|---|---|---|
 | 0 | 完成 | 0ef032e | make clean; make test-p2-blc | 当前 HEAD 全回归 PASS；版本存于 reports/p3_awb_execution |
-| 1 | 未开始 | — | — | — |
+| 1 | 完成 | 6e9ca6461d5da3a9fd108914b678d76a65bed742 | git diff --check; manual contract review | UQ4.12、RGGB、帧首采样和一级流水已明确；AWB 待最终验收启用 |
 | 2 | 未开始 | — | — | — |
 | 3 | 未开始 | — | — | — |
 | 4 | 未开始 | — | — | — |
