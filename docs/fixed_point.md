@@ -70,3 +70,27 @@ to length-2 on each axis. This reflect mapping preserves Bayer parity. The
 software reference uses widened integers and returns a new uint16 (H,W,3)
 array. RGB36 files contain exactly nine hex digits per pixel, in R/G/B order:
 (R<<24)|(G<<12)|B. The existing four-digit RAW file format is unchanged.
+
+## P5 signed CCM integer contract
+
+Coefficient ports and configuration use signed 16-bit two's-complement codes
+-32768..32767 with exactly 12 fractional bits; 4096=+1, -4096=-1. Matrix rows
+select output R/G/B, columns input R/G/B. No floating exchange format is used.
+
+Zero-extend RGB12 to a signed 13-bit positive operand before multiplying.
+Preserve each complete signed 29-bit product, then sign-extend all three to
+31 bits before addition. Legal product bounds are -134184960..134180865;
+three-term sums are -402554880..402542595. Adding 2048 fits signed 31 bits.
+For A<=0 output zero. For positive A, compute (A+2048) >>> 12 and compare
+the full scaled value with 4095 before narrowing; saturate above that limit.
+
+Register nine products in stage 1 and three final RGB values in stage 2.
+Identity crosses both stages. Register x/y/valid/flags through the same stages;
+invalid flags are zero and payload may hold. Capture all nine frame codes at
+valid SOF; effective codes for that first pixel come from external inputs.
+Saved codes reset to the integer identity matrix.
+
+The software apply_ccm API requires nonempty HxWx3 integer RGB12 and a strict
+3x3 integer matrix, rejecting bool/float and out-of-range codes. Use int64
+arithmetic and return a new uint16 array; run_pipeline adds CCM after Demosaic,
+with missing enable false and missing enabled matrix defaulting to identity.

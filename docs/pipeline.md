@@ -28,3 +28,11 @@ P4 advances the current implementation to SRAM -> Reader -> BLC -> AWB Gain ->
 warm-up changes final timing to C(width+7), followed by width*height consecutive
 RGB pixels and busy clearing one cycle after the last. See architecture.md and
 fixed_point.md for interfaces, three-row scheduling and exact border arithmetic.
+
+## P5 signed CCM implementation contract
+
+Add only a 3x3 CCM after Demosaic, retaining the independent P4 boundary.
+The two registered CCM stages preserve one RGB pixel per cycle and delay all
+sidebands equally. Coefficients are signed 16-bit integer codes with 12
+fractional bits. No offset, Gamma, CSC or extra retiming stage is introduced.
+Enable CCM in the default configuration only after full numerical acceptance.

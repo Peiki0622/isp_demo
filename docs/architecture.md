@@ -105,3 +105,23 @@ C(width+6), RGB is continuous from C(width+7) through C(N+width+6), and busy
 clears at C(N+width+7). Window busy includes its final valid cycle; demosaic
 busy also includes final RGB valid; top busy combines AWB and demosaic busy.
 This correctness-first multiport row storage makes no BRAM/Fmax claim.
+
+## P5 CCM interface and control contract
+
+Preserve P4 as independent `demosaic_pipeline`; its public RGB interface and
+C(W+7)/C(N+W+6)/C(N+W+7) timing remain unchanged. The formal top becomes
+`demosaic_pipeline -> ccm` with nine signed 16-bit c00..c22 inputs. CCM accepts
+RGB12, 16-bit x/y and valid/sof/eol/frame_done, and publishes corresponding
+registered outputs plus busy. There is no backpressure or identity bypass.
+
+CCM stage 1 registers nine signed products; stage 2 registers accumulated,
+rounded and clamped RGB. Whole-pipeline busy is demosaic_busy OR ccm_busy,
+where ccm_busy is stage1_valid OR out_valid. The outer top remembers every
+external start sample and forwards only an idle rising edge. Busy-time pulses,
+including the busy-clearing edge, and held-high starts cannot restart a frame.
+CCM itself accepts consecutive valid inputs even while its busy is high.
+
+Dimensions retain P4 start capture; BLC/AWB retain C3/C4 captures. CCM's valid
+SOF capture is C(W+8), with first final RGB C(W+9), last C(N+W+8), and idle
+C(N+W+9). Nine coefficients update atomically; the first pixel uses external
+configuration on that edge. Reset aborts all stages and restores CCM identity.

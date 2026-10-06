@@ -302,3 +302,27 @@ Cancel injection variables and rerun test-demosaic-pipeline to restore all
 frames. Final logs, raw/checked fatal verdicts, generation-failure evidence,
 recovery, two complete runs and deterministic hashes are retained under
 reports/p4_demosaic_execution, outside the clean whitelist.
+
+## P5 acceptance contract
+
+Run the current complete P4 before changes and after its independent boundary
+migration. CCM unit tests use only public ports and an independent signed
+wide-integer quotient/remainder oracle. Cover identity/zero/swap, asymmetric
+matrix direction, signed cancellation, fractional midpoint neighbors, extremes,
+upper/lower clamp, valid holes, invalid SOF, atomic first-pixel configuration,
+mid-frame disturbances, consecutive 1x1 frames and reset in both stages.
+Check pre-edge register stability and all data/coordinates/flags after NBA.
+
+Integration goldens start from actual-size SRAM Bayer inputs and execute
+BLC->AWB->Demosaic->CCM. Four 16x16 patterns each run A/B and C/D two-frame
+pairs; five small sizes check spatial tail plus CCM drain. Verify C(W+8) matrix
+capture and C(W+9)/C(N+W+8)/C(N+W+9) final timing, idle-edge start rejection,
+held start, reset/restart and hardware dimension/capacity rejection.
+
+Use process/log/unique-PASS verdicts and watchdogs. Forced fatal, missing
+golden, generation failure and individual R/G/B corruption must propagate
+nonzero. Compare-only never regenerates. Failed generation removes stale and
+partial targets before any compile; identical input/output protects the source.
+Final acceptance is clean plus two complete P5 runs with identical deterministic
+input/golden/actual hashes. P5 build/data/report directories are isolated;
+SYNTHESIS-defined simulation is not synthesis or a timing/PPA measurement.

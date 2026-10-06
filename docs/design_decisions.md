@@ -84,3 +84,17 @@ configuration. Final regression includes complete historical boundaries and
 per-channel corruption through the full Make entry, stale-golden rejection,
 recovery and two complete deterministic runs. Pixel input stays RAW12/SRAM16;
 formal output is RGB12/RGB36. Optional PPM preview remains future tooling.
+
+## P5 reconstruction choices
+
+Use a 3x3 signed matrix without offsets: signed 16-bit coefficients, 12
+fractional bits, product29 and accumulator31, positive half-up rounding and
+RGB12 clamp. This is a reconstruction choice rather than a recovered original
+format. Two fixed register stages avoid a long multiply/add/clamp stage while
+retaining throughput. Separate configuration, products, coordinates, valid,
+flags and output registers; no RTL function or unnecessary FSM is added.
+
+Preserve current P4 behavior as demosaic_pipeline instead of shifting old
+assertions. Complete current-version P0-P4 acceptance precedes changes.
+The optional P5 PNG preview reuses P4 tooling and remains outside acceptance
+dependencies. No synthesis, physical timing or DSP/BRAM resource claim is made.
