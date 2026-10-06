@@ -6,7 +6,7 @@ export PYTHONDONTWRITEBYTECODE := 1
 
 .PHONY: help patterns test-tools test-sram-model test-sram-reader test-pipeline \
         test-p0-p1 compare-p0-p1 test-blc-model test-blc-unit test-blc-pipeline \
-        test-p2-blc compare-p2-blc clean
+        test-p2-blc compare-p2-blc test-awb-model clean
 help:
 	@echo "make test-p2-blc       - complete P0/P1 plus BLC model/unit/integration regression"
 	@echo "make test-p0-p1        - independent Reader-only regression"
@@ -25,7 +25,11 @@ test-tools:
 
 # 软件参考独立验收，标准库 unittest 不额外引入测试框架。
 test-blc-model:
-	$(PYTHON) -m unittest discover -s model/tests -p 'test_*.py' -v
+	$(PYTHON) -m unittest discover -s model/tests -p 'test_blc*.py' -v
+
+# P3 软件验收与 P2 discovery 分开，避免旧入口暗中运行新测试。
+test-awb-model:
+	$(PYTHON) -m unittest discover -s model/tests -p 'test_awb*.py' -v
 
 test-sram-model: patterns
 	bash scripts/run_unit_tests.sh model

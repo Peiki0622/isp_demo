@@ -11,3 +11,9 @@ model.generate_blc_golden --input INPUT.npy --output OUTPUT.mem --black-level B`
 The caller provides ordinary configuration dictionaries; YAML parsing is not
 part of this milestone. Pipeline cycle/sof configuration capture is checked in
 RTL tests rather than inferred from this per-frame numerical model.
+
+P3 adds awb_gain.scale_pixel(pixel, gain_code) and apply_awb_gain(raw_2d, r, g, b).
+The format is fixed UQ4.12 (4096=unity); images must be nonempty 2D integer
+RAW12 arrays. All intermediate arithmetic widens before multiplication, and
+outputs are new uint16 arrays. run_pipeline applies BLC then AWB, with missing
+enables defaulting to false and missing gains to 4096. Run make test-awb-model.
