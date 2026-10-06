@@ -5,7 +5,7 @@ from model.awb_gain import apply_awb_gain
 
 
 def run_pipeline(raw, cfg):
-    """执行当前已实现的 BLC；cfg 使用现有配置文件对应的普通字典。
+    """依次执行已启用的 BLC、AWB Gain；cfg 是普通配置字典。
 
     pipeline.blc 缺省关闭；启用时 blc.offset 缺省为零。配置文件读取
     由调用者负责，本阶段不引入 YAML 依赖或未实现的后续算法。

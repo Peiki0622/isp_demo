@@ -244,3 +244,32 @@ compilation/simulation/comparison. Restore with `make test-awb-pipeline` without
 injection variables, then recheck existing dumps. Retained final evidence and
 deterministic hashes are in `reports/p3_awb_execution/`; logs and generated
 databases are excluded from hash comparisons. No Fmax or PPA conclusion is made.
+
+## P4 acceptance contract
+
+Before changes, rerun the complete current P3. Preserve Reader/BLC/AWB historical
+cycle assertions. Window tests independently check all nine samples, exact
+raster order, width*height outputs, first-window timing, no gaps and width+1
+tail cycles. Test 2x2, 3x2, 2x3, 3x5, 4x4, odd/even combinations, maximum widths,
+changing frame sizes, old-row overwrite at width=2, reset in warm-up/stream/tail
+and tagged failures. Ordinary and SYNTHESIS-defined simulation must confirm
+functional dimension rejection independently of simulation diagnostics.
+
+Demosaic tests cover four phases, half-up midpoint neighbors, zero/4095, all
+borders, exact one-register arithmetic timing and busy through final RGB.
+Drive testbench input on falling edges and check after NBA updates, using only
+public interfaces. Full-chain goldens start at raw SRAM NPY and apply Python
+BLC->AWB->Demosaic. Each actual frame dimension gets separate inputs/goldens.
+Four 16x16 RGB patterns run two different configurations; RGB36 comparison
+requires nine hex digits, exactly width*height entries and channel diagnostics.
+Check C(width+7) first RGB, C(N+width+6) last and C(N+width+7) idle, configuration
+captures at C3/C4, busy-time starts, held starts, reset/restart and illegal sizes.
+
+Use the existing process/log/unique-PASS VCS verdict and watchdog. Fatal,
+missing golden, each corrupted RGB channel and failed golden generation must
+propagate nonzero. Failed generation removes stale/partial targets and stops
+before compilation. Compare-only never regenerates files. Final acceptance is
+clean followed by two complete P4 runs with identical deterministic file hashes.
+P4 products live only under build/p4_demosaic and testdata/output/p4_demosaic;
+persistent logs/hashes live under reports/p4_demosaic_execution. No synthesis,
+timing, PPA or visual-only acceptance is performed.

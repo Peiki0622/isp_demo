@@ -64,3 +64,17 @@ retiming, bus, automatic AWB, further algorithm or synthesis/PPA claim is added.
 Default enables reflect completed stages: only BLC and AWB Gain are enabled.
 Small-frame integration golden files use their actual dimensions; reusing the
 first N pixels of a 16x16 golden would select wrong Bayer phases at odd widths.
+
+## P4 reconstruction choices
+
+Implement fixed RGGB 3x3 bilinear demosaic with phase-preserving reflect borders
+and full-size RGB12 output. This is a reconstruction choice, not a recovered
+original algorithm. Malvar-He-Cutler, edge-aware interpolation and other ISP
+stages remain future work. Three rotating row stores establish correctness;
+two-line BRAM optimization and physical implementation are separate milestones.
+Use the current HEAD, preserve historical public test interfaces, and keep
+configuration defaults disabled until full P4 acceptance. The window introduces
+a necessary three-part tail FSM; arithmetic and top wrappers need no new FSM.
+All new ports and long blocks receive grouped explanatory comments, and all
+synthesizable registers are separated by function. Keep local VCS and the
+existing Python/NumPy/unittest dependencies without image/YAML dependencies.

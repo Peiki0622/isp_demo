@@ -69,3 +69,39 @@ AWB configuration at C4, independently of C0. Top start filtering uses
 `blc_busy || final_valid` and remembers every external start sample, including
 busy cycles. Busy pulses and held-high start across completion cannot restart.
 Reset aborts all stages and clears the external start history.
+
+## P4 streaming RGB implementation contract
+
+P4 extends the current workspace with `awb_pipeline -> demosaic -> RGB12`.
+Reader-only C2, BLC-only C3 and AWB-only C4 remain independent test boundaries.
+The formal top publishes pixel_r/g/b instead of pixel_data, with 16-bit x/y,
+valid, sof/eol/frame_done and busy. There is no backpressure.
+
+Window inputs carry RAW12, coordinates, frame flags and stable frame_width/height.
+The top captures dimensions only on an accepted start; BLC and AWB retain their
+separate valid-sof configuration captures at C3/C4. Legal RGB dimensions are
+2 <= width <= MAX_WIDTH (default 4096), height >= 2 and width*height <= SRAM
+capacity. Rejected dimensions cannot assert busy or forward a start. External
+start history updates even while busy and on rejected edges.
+
+Use three rotating RAW line arrays, synchronous writes and combinational reads,
+then one window register. The first complete neighborhood is available when
+(1,1) is consumed. Forward the incoming sample wherever a reflected window
+references that exact pixel. At the next input row's x=0, read the previous
+output row's right border before overwriting the oldest row; this includes
+width=2, where a read and write can share column zero. Do not reset the arrays:
+reset control/outputs, and only expose samples written by the new frame.
+
+For x>=1,y>=1 output center (x-1,y-1); for x=0,y>=2 output center
+(width-1,y-2). After the final input, output the penultimate row's right pixel
+and the complete last row: width+1 tail windows. Retain final row roles until
+this tail ends. A three-part IDLE/STREAM/TAIL_RIGHT/TAIL_LAST FSM controls the
+schedule; dimension, row-role, tail-coordinate, payload and flag registers are
+separate. No synthesizable RTL functions are introduced.
+
+Demosaic decodes the registered center phase and adds exactly one RGB register.
+For accepted start C0, N=width*height: AWB starts at C4, the first window is
+C(width+6), RGB is continuous from C(width+7) through C(N+width+6), and busy
+clears at C(N+width+7). Window busy includes its final valid cycle; demosaic
+busy also includes final RGB valid; top busy combines AWB and demosaic busy.
+This correctness-first multiport row storage makes no BRAM/Fmax claim.

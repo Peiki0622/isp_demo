@@ -48,3 +48,25 @@ Invalid sof does not update configuration. Synchronous active-low reset restores
 all saved gains to 4096 and clears outputs. AWB always registers exactly one
 stage, including unity or zero gain: valid, data, x/y and flags remain aligned.
 Invalid output has zero sof/eol/frame_done; data and coordinates may hold.
+
+## P4 bilinear RGGB and reflect contract
+
+Label the window p00 p01 p02 / p10 p11 p12 / p20 p21 p22. Decode {y[0],x[0]}:
+
+| Phase | R | G | B |
+|---|---|---|---|
+| 00 R | p11 | (p01+p10+p12+p21+2)>>2 | (p00+p02+p20+p22+2)>>2 |
+| 01 Gr | (p10+p12+1)>>1 | p11 | (p01+p21+1)>>1 |
+| 10 Gb | (p01+p21+1)>>1 | p11 | (p10+p12+1)>>1 |
+| 11 B | (p00+p02+p20+p22+2)>>2 | (p01+p10+p12+p21+2)>>2 | p11 |
+
+Extend operands before addition: two samples plus one need 13 bits (max 8191),
+four samples plus two need 14 bits (max 16382). Positive half-up averages are
+already in 0..4095 and need no additional saturation. Input/output are RAW12/
+RGB12; output data, center coordinates and flags share one arithmetic register.
+
+Keep the full image dimensions. For width/height >=2, map -1 to 1 and length
+to length-2 on each axis. This reflect mapping preserves Bayer parity. The
+software reference uses widened integers and returns a new uint16 (H,W,3)
+array. RGB36 files contain exactly nine hex digits per pixel, in R/G/B order:
+(R<<24)|(G<<12)|B. The existing four-digit RAW file format is unchanged.

@@ -2,7 +2,7 @@
 
 目标读者：Codex（代码代理）
 
-状态：待执行
+状态：执行中
 
 本轮目标：在已经通过 P0/P1、P2、P3 验收的 SRAM → Reader → BLC → AWB Gain RAW 链路之后，加入第一个真正的邻域算法模块 Demosaic（去马赛克），完成 RAW12 RGGB → RGB12 的转换。
 
@@ -289,13 +289,13 @@ P4 必须保留：
 
 # Step 0 — 重新验证 P3 基线
 
-- [ ] 回读 plans/003_p3_awb_gain.md。
-- [ ] 回读 awb_gain、isp_pipeline_top、demosaic/window 占位文件。
-- [ ] make clean。
-- [ ] make test-p3-awb。
-- [ ] 记录 VCS/Python/NumPy 版本。
-- [ ] 确认工作区干净。
-- [ ] 记录最新 P3 HEAD。
+- [x] 回读 plans/003_p3_awb_gain.md。
+- [x] 回读 awb_gain、isp_pipeline_top、demosaic/window 占位文件。
+- [x] make clean。
+- [x] make test-p3-awb。
+- [x] 记录 VCS/Python/NumPy 版本。
+- [x] 确认工作区干净。
+- [x] 记录最新 P3 HEAD。
 
 验收：任何 P4 修改前，完整 P3 必须 PASS。
 
@@ -668,7 +668,7 @@ Codex 每完成一步更新实际提交哈希。
 
 | Step | 状态 | 提交 | 验证命令 | 备注 |
 |---|---|---|---|---|
-| 0 | 未开始 | — | — | — |
+| 0 | 完成 | 3c5e140ce36f7253ba0100225c52eebc67aa916e | make clean; make test-p3-awb | 当前版本完整 PASS；版本/日志见 reports/p4_demosaic_execution |
 | 1 | 未开始 | — | — | — |
 | 2 | 未开始 | — | — | — |
 | 3 | 未开始 | — | — | — |
@@ -688,3 +688,12 @@ Codex 每完成一步更新实际提交哈希。
 默认下一阶段进入 CCM（Color Correction Matrix，颜色校正矩阵），因为 P4 已经首次得到 RGB12 三通道流；随后可以建立 3×3 颜色矩阵乘加、带符号定点系数、舍入和饱和。
 
 Raw NR 继续暂时旁路，待 RAW→RGB→CCM 主链稳定后再作为独立原始域里程碑插回并回归。
+
+## 当前版本执行补充
+
+- 从当前 HEAD 3c5e140 向前实施，不切换历史冻结提交。
+- 三行同步写/组合读，当前样本前递；行首先读旧行再覆盖，末行不轮转。
+- 窗口输出一级寄存，RGB 再一级；首 RGB C(W+7)，末 RGB C(N+W+6)，空闲 C(N+W+7)。
+- 正式 top 合法启动锁存尺寸，BLC/AWB 仍各自在 C3/C4 采样配置。
+- 逐阶段回读原 Step 和本补充，完成后记录实际提交与验收，不跳过完整回归。
+- 所有新 RTL 无 function；必要窗口 FSM 采用三段式，寄存器按职责分块。

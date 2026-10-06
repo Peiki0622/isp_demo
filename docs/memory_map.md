@@ -75,3 +75,13 @@ and busy both high on the last pixel; busy is zero at C(N+4). Each stage
 holds its own frame configuration. Whole-pipeline busy filters start, and
 busy-time edges are remembered even during AWB-only drain. Other SRAM
 layout, dimensions, capacity rejection and Reader timing remain unchanged.
+
+## P4 RGB public timing
+
+SRAM word layout, Source C2 and BLC C3 stay unchanged. The P3 public RAW stream
+moves to awb_pipeline with unchanged C4/C(N+3)/C(N+4) timing. Formal RGB top
+captures dimensions on accepted C0, allows only width/height >=2, width <=4096
+by default and frames fitting the address space. BLC/AWB still capture at C3/C4.
+With N=width*height, RGB first/last cycles are C(width+7)/C(N+width+6), and
+busy clears at C(N+width+7). Its output payload is three RAW-width channels;
+SRAM input remains one 16-bit RAW12 word per address.
