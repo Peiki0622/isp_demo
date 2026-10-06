@@ -47,3 +47,8 @@ clean:
 	@for pattern in addr_ramp flat checker gradient; do \
 		rm -f "testdata/synthetic/$${pattern}_16x16.mem" "testdata/synthetic/$${pattern}_16x16.npy" "testdata/synthetic/$${pattern}_16x16.json"; \
 	done
+
+.PHONY: test-blc-unit
+# 每次重新编译并完整核对有效拍、空洞、配置边界和复位。
+test-blc-unit:
+	bash scripts/run_blc_unit.sh
