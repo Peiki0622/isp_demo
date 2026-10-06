@@ -70,6 +70,26 @@ P4 编译/日志集中于 `build/p4_demosaic/`，输入/黄金/dump 集中于
 可重建产物，保留 reports 和其他运行目录。两轮完整验收及 282 份确定性文件哈希一致的
 证据均已保存。详细执行记录见 `plans/004_p4_demosaic_bilinear.md`，周期和数值说明见 docs。
 
+## 查看处理后的 PNG
+
+P4 验收生成四种 16×16 合成图案各两帧的实际 RTL RGB 输出。
+运行可选 PNG 导出工具即可查看结果：
+
+```sh
+make test-p4-demosaic
+PYTHONDONTWRITEBYTECODE=1 python3 tools/export_demosaic_png.py
+```
+
+已有验收数据时只需执行第二行。PNG 导出使用 Pillow；当前环境验证版本为
+6.2.2。Pillow 仅用于这个人工预览工具，正式模型和数值验收依赖保持不变。
+工具先逐像素核对全部八份实际 dump 与独立黄金，再导出 PNG 并回读核对像素。
+完整参数、图案含义、数值映射和输出文件说明见
+[P4 PNG 预览说明](docs/p4_png_preview.md)。
+
+总览图为 `testdata/output/p4_demosaic/png/rtl_rgb_overview.png`，同目录保存
+八份原尺寸 PNG、八份放大版及 `manifest.json`。生成图片随 P4 产物清理，
+不提交版本库；导出工具和复现说明纳入版本管理。
+
 ## 后续完整 ISP 目标
 
 第一版端到端链路：
