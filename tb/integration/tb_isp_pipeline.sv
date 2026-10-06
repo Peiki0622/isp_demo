@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
-// 从顶层公开接口验证两帧完整 RAW 流，不探查顶层或 reader 的内部状态。
+// Reader-only Source 回归：保留原 C0/C1/C2 断言，独立于正式顶层的 BLC。
+// 只使用公开端口验证两帧完整 RAW 流，不读取 DUT 内部状态。
 module tb_isp_pipeline;
     // 控制模块：使用顶层默认 20 位地址和 RAW12 配置。
     logic clk = 1'b0, rst_n = 1'b0, start = 1'b0;
@@ -20,7 +21,7 @@ module tb_isp_pipeline;
     sram_model #(.ADDR_W(20), .DEPTH(256)) memory (
         .clk(clk), .addr(sram_addr), .rdata(sram_rdata)
     );
-    isp_pipeline_top dut (
+    sram_raw_source dut (
         // 时钟/帧控制。
         .clk(clk), .rst_n(rst_n), .start(start),
         .image_width(image_width), .image_height(image_height), .busy(busy),

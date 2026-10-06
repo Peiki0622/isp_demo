@@ -8,7 +8,7 @@ case "$selection" in all|compare) ;; *) printf 'Usage: %s [all|compare]\n' "$0" 
 directory="$BUILD_ROOT/pipeline"
 if [[ $selection == all ]]; then
     compile_vcs "$directory" tb_isp_pipeline "$ROOT/tb/integration/tb_isp_pipeline.sv" \
-        "$ROOT/rtl/top/isp_pipeline_top.sv" "$ROOT/rtl/memory/sram_reader.sv" "$ROOT/tb/models/sram_model.sv"
+        "$ROOT/rtl/top/sram_raw_source.sv" "$ROOT/rtl/memory/sram_reader.sv" "$ROOT/tb/models/sram_model.sv"
 fi
 # 相同测试平台还检查 flat、checker、gradient 的 RAW12 高位，编译只需一次。
 for pattern in addr_ramp flat checker gradient; do
