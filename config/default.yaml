@@ -9,7 +9,7 @@ pipeline:
   raw_nr: false
   awb_gain: true
   demosaic: true
-  ccm: false
+  ccm: true
   rgb2ycbcr: false
   chroma_nr: false
   hue: false

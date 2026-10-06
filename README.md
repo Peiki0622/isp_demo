@@ -4,91 +4,96 @@
 
 ## 当前进度与最短运行命令
 
-已实现到 P4：确定性 RGB/Bayer 图案 → 一周期同步 SRAM → Reader →
-BLC → AWB Gain → 3×3 Bilinear Demosaic → RGB12 三通道流。软件黄金
-从原始 Bayer 输入依次执行 BLC→AWB→Demosaic，与每帧 RGB36 dump 精确比较。
-AWB 施加外部三路增益，两个绿色位置共用 gain_g；自动统计和增益估计留待后续。
-默认配置启用 BLC、AWB Gain 和 Demosaic。
+已实现到 P5：SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic →
+CCM → RGB12 三通道流。软件黄金从原始 Bayer 输入依次执行四个算法，
+与实际 RTL 的 RGB36 dump 逐像素精确比较。默认配置启用这四个阶段，
+CCM 使用整数单位矩阵。AWB 施加外部三路增益，两个绿色位置共用 gain_g；
+自动统计和增益估计留待后续。
 
 从仓库根目录运行完整验收：
 
 ```sh
-make test-p4-demosaic
+make test-p5-ccm
 ```
 
-入口先完整运行 P0/P1、P2、P3，再运行 P4 工具/模型/黄金 CLI、窗口、
-Demosaic 单元和 RGB 全链。窗口检查 64 帧、22,004 个窗口的 198,036 个
-样本，含宽度 4095/4096；RGB 单元独立检查 64 帧、2,566 个像素的三个
-通道。顶层检查五种实际小尺寸、70 个完整控制帧及四类复位中止/恢复，
-再比较四种 16×16 图案各两帧的 2,048 个 RGB 像素。每个有效坐标、
-标志、固定周期、帧长度及 busy 都通过才打印 `P4 DEMOSAIC PASS`。
-所有入口合计 50 项 Python 测试；VCS fatal 即使原生退出码为零也判失败。
+入口先完整运行 P0/P1、P2、P3、P4，再运行 CCM 模型/黄金 CLI、单元及全链。
+全部入口共 65 项 Python 测试。CCM 单元在正常和 `SYNTHESIS` 定义下分别
+检查 6,504 个周期、6,494 个 RGB 像素和 19,482 项通道结果，覆盖 11 种矩阵、
+边界组合、4,096 个连续输入、配置、侧带与复位。集成平台检查五种实际小尺寸
+共 95 个完整控制帧、25 个复位中止/恢复场景及容量拒绝，再比较四种 16×16
+图案的 A/B、C/D 两组双帧，共 16 帧、4,096 个 RGB 像素。每个坐标、标志、
+周期、帧长度及 busy 都通过才打印 `P5 CCM PASS`。VCS fatal 即使原生退出码
+为零也必须判失败。
 
-P4 固定 RGGB，输入 RAW12，输出每通道 RGB12。采用 reflect：-1→1，
-W/H→W/H−2，输出尺寸不变；三行轮转存储与当前像素前递保证边界正确。
-双线性两项/四项平均采用 13/14 位中间和以及 half-up 舍入。
-正式 RGB top 接受 W/H≥2、W≤MAX_WIDTH（默认 4096）且帧不超过 SRAM
-容量。输入连续、无反压；首窗口至最后窗口及首 RGB 至最后 RGB 均无气泡。
+CCM 九个系数为 signed16 二进制补码、12 个小数位，4096 表示 +1。
+矩阵行对应输出通道，列对应输入通道。RGB12 显式零扩展为正 signed13，
+保留完整 signed29 乘积和 signed31 累加；累加≤0 输出零，正累加加 2048
+后右移 12 位，再饱和到 4095。固定两级寄存、每拍一个像素，单位矩阵也
+保持两级。九个系数在有效 sof 原子采样，首像素直接使用新矩阵，帧中外部
+扰动不影响当前帧；复位恢复单位矩阵。没有 CCM offset、Gamma 或 CSC。
 
-设接受 start 为 C0、N=W×H：Reader-only `sram_raw_source` 保持 C2，
-BLC-only `blc_pipeline` 保持 C3，AWB-only `awb_pipeline` 保持 C4。
-正式 top 首 RGB 为 C(W+7)，末 RGB 为 C(N+W+6) 且 busy=1，随后一拍空闲。
-尺寸在接受 start 时保存，BLC/AWB 配置分别在 C3/C4 有效帧首采样。
-忙时 start、tail 脉冲及跨完成保持高电平都不会自动重启。
+P4 保留为独立 `demosaic_pipeline`，原有周期和断言不变。RGGB/RAW12、
+reflect 边界（-1→1，W/H→W/H−2）、三行轮转和 half-up 双线性插值保持不变。
+正式顶层接受 W/H≥2、W≤MAX_WIDTH（默认 4096）且帧不超过 SRAM 容量；
+输入连续、无反压，输出尺寸不变。
+
+设接受 start 为 C0、N=W×H：Reader/BLC/AWB 独立边界首输出仍为 C2/C3/C4，
+P4 首/末/空闲为 C(W+7)/C(N+W+6)/C(N+W+7)。P5 CCM 在 C(W+8) 捕获矩阵，
+正式首/末/空闲为 C(W+9)/C(N+W+8)/C(N+W+9)。尺寸在 C0 保存，BLC/AWB
+配置在 C3/C4 有效帧首采样。最后 RGB 拍 busy=1；忙时、CCM drain 和 busy
+清零沿的 start 都被丢弃，保持高电平不会重启，空闲后需新的上升沿。
+正式 `isp_pipeline_top` 增加九个 signed16 输入端口 c00..c22。
 
 依赖容器已有 VCS W-2024.09、Python 3.6.6、NumPy 1.19.5、Make 和 Bash。
 可通过 `VCS=/path/to/vcs PYTHON=/path/to/python3` 覆盖可执行路径。
-模型接受普通配置字典，不增加 YAML、图片库或测试框架依赖。
-本阶段验收编译与功能仿真，后续再进行综合和时序分析。
+模型接收普通配置字典，不增加 YAML、图片库或测试框架核心依赖。
+本轮执行编译与功能仿真，包括 `SYNTHESIS` 定义下的功能验证；未执行综合、
+物理时序或 PPA 分析。
 
 独立入口：`make test-p0-p1`、`make test-p2-blc`、`make test-p3-awb`、
-`make test-demosaic-tools`、`make test-demosaic-model`、`make test-window-3x3`、
-`make test-demosaic-unit`、`make test-demosaic-pipeline`。
-`make compare-p4-demosaic` 只检查已有黄金和 dump，不重新生成文件。
-RGB36 每像素一行 `RRRGGGBBB`，对应 `(R<<24)|(G<<12)|B`；比较同时检查
-每行九位格式、实际 W×H 数量和首个错误的 index/x/y/通道/RGB。
+`make test-p4-demosaic`、`make test-ccm-model`、`make test-ccm-unit`、
+`make test-ccm-pipeline`。`make compare-p5-ccm` 只读取已有 26 份黄金/dump，
+不重建文件。RGB36 每像素一行九位 `RRRGGGBBB`，对应 `(R<<24)|(G<<12)|B`，
+比较同时检查格式、W×H 数量及首错的 index/x/y/通道/expected/actual。
 
 失败传播复现：
 
 ```sh
-WINDOW_CASE=forced_failure make test-window-3x3
-DEMOSAIC_CASE=forced_failure make test-demosaic-unit
-DEMOSAIC_CORRUPT_OUTPUT=R make test-p4-demosaic
-make compare-p4-demosaic
-DEMOSAIC_GOLDEN_INPUT=/absolute/missing.npy make test-demosaic-pipeline
+CCM_CASE=forced_failure make test-ccm-unit
+CCM_CORRUPT_OUTPUT=R make test-p5-ccm
+make compare-p5-ccm
+CCM_GOLDEN_INPUT=/absolute/missing.npy make test-ccm-pipeline
 ```
 
-损坏注入也支持 G/B，仅改变首图案 frame_0 的 actual index=42（x=10,y=2）。
-生成失败删除旧/部分黄金并在编译前停止。取消注入，运行
-`make test-demosaic-pipeline` 恢复，然后运行比较入口。
+损坏注入也支持 G/B，仅改变首矩阵组首图案 frame_0 的 actual index=42
+（x=10,y=2）。生成失败删除旧/部分黄金并在编译前停止。取消注入后运行
+`make test-ccm-pipeline` 恢复，再运行比较入口；单元 fatal、缺失黄金和三通道
+损坏均要求非零退出。
 
-新 RTL 端口按功能分组注释，寄存器按配置、行角色、计数、数据、坐标、
-有效位和标志分块；窗口采用三段式 FSM，可综合 RTL 不使用 function。
-P4 编译/日志集中于 `build/p4_demosaic/`，输入/黄金/dump 集中于
-`testdata/output/p4_demosaic/{inputs,golden,integration}/`。持久证据在
-`reports/p4_demosaic_execution/`；`make clean` 仅清理规定的 P0–P4
-可重建产物，保留 reports 和其他运行目录。两轮完整验收及 282 份确定性文件哈希一致的
-证据均已保存。详细执行记录见 `plans/004_p4_demosaic_bilinear.md`，周期和数值说明见 docs。
+新 RTL 端口按功能分组注释，寄存器按配置、乘积、RGB、坐标、有效位和标志
+分块，可综合路径没有 function；既有窗口三段式 FSM 保持不变。P5 构建和
+日志集中于 `build/p5_ccm/`，输入/黄金/dump 位于
+`testdata/output/p5_ccm/{inputs,golden,integration}/`，持久证据位于
+`reports/p5_ccm_execution/`。`make clean` 只清理规定的 P0–P5 可重建产物，
+保留 reports 和其他运行目录。最终验收执行 clean 后连续两轮完整 P0–P5，
+并核对确定性文件哈希；详细记录见 [P5 计划](plans/005_p5_ccm.md)。
 
 ## 查看处理后的 PNG
 
-P4 验收生成四种 16×16 合成图案各两帧的实际 RTL RGB 输出。
-运行可选 PNG 导出工具即可查看结果：
+P5 两组矩阵分别导出四种图案各两帧的实际 RTL 输出：
 
 ```sh
-make test-p4-demosaic
-PYTHONDONTWRITEBYTECODE=1 python3 tools/export_demosaic_png.py
+PYTHONDONTWRITEBYTECODE=1 python3 tools/export_demosaic_png.py --stage p5 --matrix-pair identity_swap
+PYTHONDONTWRITEBYTECODE=1 python3 tools/export_demosaic_png.py --stage p5 --matrix-pair signed_clip
 ```
 
-已有验收数据时只需执行第二行。PNG 导出使用 Pillow；当前环境验证版本为
-6.2.2。Pillow 仅用于这个人工预览工具，正式模型和数值验收依赖保持不变。
-工具先逐像素核对全部八份实际 dump 与独立黄金，再导出 PNG 并回读核对像素。
-完整参数、图案含义、数值映射和输出文件说明见
-[P4 PNG 预览说明](docs/p4_png_preview.md)。
-
-总览图为 `testdata/output/p4_demosaic/png/rtl_rgb_overview.png`，同目录保存
-八份原尺寸 PNG、八份放大版及 `manifest.json`。生成图片随 P4 产物清理，
-不提交版本库；导出工具和复现说明纳入版本管理。
+已有数值验收数据即可导出。无参数仍导出原 P4 预览。Pillow 6.2.2 仅为可选
+图片工具依赖；导出前检查全部实际像素与黄金一致，保存后回读原尺寸 PNG。
+使用固定线性 RGB12→RGB8 映射和最近邻放大，无自动亮度拉伸或伽马。
+两组各含八张原尺寸、八张放大版、一张总览及清单，集中于
+`testdata/output/p5_ccm/png/<pair>/`，可重建且不提交版本库。
+参数、矩阵编码和路径见 [P5 PNG 说明](docs/p5_png_preview.md)；
+原命令见 [P4 PNG 说明](docs/p4_png_preview.md)。
 
 ## 后续完整 ISP 目标
 

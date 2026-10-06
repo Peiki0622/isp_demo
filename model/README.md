@@ -33,10 +33,32 @@ P4 adds demosaic.apply_demosaic(raw_2d): require integer RAW12 of at least 2x2,
 use phase-preserving reflect and return a new uint16 (H,W,3) RGB12 array.
 run_pipeline applies BLC, AWB, then Demosaic when pipeline.demosaic is true;
 missing enable remains false for historical RAW callers. Default project YAML
-now enables the three implemented stages, while parsing remains caller-owned.
+enables BLC/AWB/Demosaic; P5 also enables CCM, while parsing remains caller-owned.
 Use make test-demosaic-model and make test-demosaic-tools. Generate full-chain
 RGB36 with python3 -m model.generate_demosaic_golden using the same --input,
 --output, --black-level and three gain-code options as P3. Each pixel is exactly
 nine hexadecimal digits, R/G/B each occupying 12 bits. The CLI removes stale
 and partial targets on computation/I/O failure and protects identical input/
 output paths. No image library is required; numerical comparison is acceptance.
+
+P5 adds ccm.apply_ccm(rgb, matrix): require nonempty integer (H,W,3) RGB12 and
+exactly a 3x3 matrix of signed16 integer codes (-32768..32767, 4096=unity).
+Rows select output channels; use int64 dot products, clamp accumulators <=0,
+round positive values half-up with +2048 and >>12, then saturate to 4095 before
+uint16 conversion. Inputs are never modified. Boolean/floating coefficients
+are rejected even in mixed lists. run_pipeline applies CCM after Demosaic;
+missing enable remains false and missing matrix defaults to integer identity.
+Enabling CCM on a 2D RAW result raises ValueError. make test-ccm-model runs
+8 numerical/configuration tests and 7 full-chain golden CLI tests.
+
+```sh
+python3 -m model.generate_ccm_golden --input INPUT.npy --output OUTPUT.mem \
+  --black-level 64 --gain-r 6144 --gain-g 4096 --gain-b 8192 \
+  --matrix 5120 -512 -512 -256 4608 -256 -512 -512 5120
+```
+
+The nine codes are row-major integers. The CLI starts from original SRAM Bayer
+and applies BLC->AWB->Demosaic->CCM; RGB36 format and strict dimensions match P4.
+It removes stale/partial targets on invalid matrix/input/config or I/O failure,
+protects identical input/output paths, and needs no image library. Frame-level
+numerical modeling does not replace cycle/configuration capture checks in RTL.

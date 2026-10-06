@@ -11,6 +11,11 @@ export PYTHONDONTWRITEBYTECODE := 1
         test-window-3x3 test-demosaic-unit test-demosaic-pipeline \
         test-p4-demosaic compare-p4-demosaic test-ccm-model test-ccm-unit test-ccm-pipeline test-p5-ccm compare-p5-ccm clean
 help:
+	@echo "make test-p5-ccm       - complete P0-P4 plus signed CCM model/unit/full-chain regression"
+	@echo "make test-ccm-model    - integer signed CCM and full-chain RGB36 golden CLI tests"
+	@echo "make test-ccm-unit     - independent signed oracle, two-stage timing and frame configuration"
+	@echo "make test-ccm-pipeline - five-size controls, reset/drain and four-pattern A/B,C/D comparison"
+	@echo "make compare-p5-ccm   - compare existing 26 P5 RGB36 dumps without regeneration"
 	@echo "make test-p4-demosaic  - complete P0-P3 and P4 tools/model/window/RGB regression"
 	@echo "make test-window-3x3   - all nine samples, continuous schedule and maximum widths"
 	@echo "make test-demosaic-unit - independent color oracle and exact RGB register timing"
@@ -27,7 +32,7 @@ help:
 	@echo "make test-awb-unit     - exhaustive AWB arithmetic and cycle-exact unit regression"
 	@echo "make test-awb-pipeline - small-frame controls plus four-pattern two-frame comparison"
 	@echo "make compare-p3-awb    - recheck existing AWB frame dumps without regenerating"
-	@echo "make clean            - remove only named P0-P4 generated artifacts; preserve reports"
+	@echo "make clean            - remove only named P0-P5 generated artifacts; preserve reports"
 
 # 输入向量保持 P0/P1 文件格式和命名；确定性 NPY 与 MEM 内容一一对应。
 patterns:
@@ -157,7 +162,7 @@ test-p4-demosaic:
 
 # 清理只覆盖本项目规定的可重建产物；保留 reports 验收记录及其他运行目录。
 clean:
-	rm -rf build/p0_p1 build/p2_blc build/p3_awb build/p4_demosaic testdata/output/p0_p1 testdata/output/p2_blc testdata/output/p3_awb testdata/output/p4_demosaic
+	rm -rf build/p0_p1 build/p2_blc build/p3_awb build/p4_demosaic build/p5_ccm testdata/output/p0_p1 testdata/output/p2_blc testdata/output/p3_awb testdata/output/p4_demosaic testdata/output/p5_ccm
 	@for pattern in addr_ramp flat checker gradient; do \
 		rm -f "testdata/synthetic/$${pattern}_16x16.mem" "testdata/synthetic/$${pattern}_16x16.npy" "testdata/synthetic/$${pattern}_16x16.json"; \
 	done

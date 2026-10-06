@@ -74,7 +74,7 @@ Reset aborts all stages and clears the external start history.
 
 P4 extends the current workspace with `awb_pipeline -> demosaic -> RGB12`.
 Reader-only C2, BLC-only C3 and AWB-only C4 remain independent test boundaries.
-The formal top publishes pixel_r/g/b instead of pixel_data, with 16-bit x/y,
+The independent demosaic_pipeline publishes pixel_r/g/b instead of pixel_data, with 16-bit x/y,
 valid, sof/eol/frame_done and busy. There is no backpressure.
 
 Window inputs carry RAW12, coordinates, frame flags and stable frame_width/height.

@@ -36,3 +36,5 @@ The two registered CCM stages preserve one RGB pixel per cycle and delay all
 sidebands equally. Coefficients are signed 16-bit integer codes with 12
 fractional bits. No offset, Gamma, CSC or extra retiming stage is introduced.
 Enable CCM in the default configuration only after full numerical acceptance.
+The complete initial P0-P5 regression passed before enabling the default integer
+identity CCM; final clean/two-round acceptance rechecks this configuration.

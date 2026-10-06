@@ -326,3 +326,41 @@ partial targets before any compile; identical input/output protects the source.
 Final acceptance is clean plus two complete P5 runs with identical deterministic
 input/golden/actual hashes. P5 build/data/report directories are isolated;
 SYNTHESIS-defined simulation is not synthesis or a timing/PPA measurement.
+
+## P5 reproducible commands and coverage
+
+`make test-p5-ccm` sequentially runs the entire P0-P4 chain, then P5 software,
+unit and integration acceptance. The combined Python count is 65 (historical
+50 plus P5 numerical/configuration 8 and golden CLI 7). Each normal and
+SYNTHESIS-defined CCM unit run checks 6,504 cycles, 6,494 RGB pixels and
+19,482 channel results using an independent longint quotient/remainder oracle.
+Eleven matrices each cover 216 boundary RGB combinations, with 4,096 continuous
+inputs and additional metadata/configuration/reset checks. Use an asymmetric
+matrix to detect transposition; the R/B swap matrix is itself symmetric.
+
+Five actual sizes (2x2,3x2,2x3,3x5,4x4) each check twelve start modes, two
+golden-dump frames and five reset/restart frames: 95 completed control frames
+and 25 reset scenarios. An additional SYNTHESIS-defined capacity-rejection run
+checks recovery in hardware paths. Four 16x16 patterns use A/B and C/D pairs,
+totalling sixteen main frames and 4,096 RGB pixels. Frame0 upstream settings
+are black=64/gains=6144,4096,8192; frame1=128/4096,5120,2048. Matrix ports are
+deliberately wrong at C0, become the target at C(W+8), then all nine are
+disturbed from C(W+9). Output coordinates/flags are checked against dimensions
+and raster position through public interfaces, with no DUT-internal oracle.
+
+`make compare-p5-ccm` only reads 26 existing dumps and goldens. Set
+`CCM_CASE=forced_failure` for the unit fatal; set `CCM_CORRUPT_OUTPUT=R`, `G`,
+or `B` for a full Make regression that flips one actual channel at index=42,
+x=10,y=2. Both the full target and subsequent compare must fail and report
+index/x/y/channel/expected/actual; input/golden hashes must remain unchanged.
+`CCM_GOLDEN_INPUT=/absolute/missing.npy make test-ccm-pipeline` must delete
+the old first golden, leave no partial target and stop before updating the
+compile command. Cancel injections, rerun test-ccm-pipeline and compare-p5-ccm
+to recover. Normal integration also checks missing golden, forced fatal,
+illegal width and two capacity violations with the strict VCS verdict helper.
+
+Build logs/binaries are under build/p5_ccm; deterministic inputs, goldens and
+actuals are under testdata/output/p5_ccm. Retained evidence is under
+reports/p5_ccm_execution and survives the P0-P5 clean whitelist. Optional PNG
+exports verify actual/golden before writing and round-trip all native images;
+Pillow is not a regression dependency. See p5_png_preview.md for commands.

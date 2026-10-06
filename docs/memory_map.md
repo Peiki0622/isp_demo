@@ -79,9 +79,25 @@ layout, dimensions, capacity rejection and Reader timing remain unchanged.
 ## P4 RGB public timing
 
 SRAM word layout, Source C2 and BLC C3 stay unchanged. The P3 public RAW stream
-moves to awb_pipeline with unchanged C4/C(N+3)/C(N+4) timing. Formal RGB top
+moves to awb_pipeline with unchanged C4/C(N+3)/C(N+4) timing. Independent demosaic_pipeline
 captures dimensions on accepted C0, allows only width/height >=2, width <=4096
 by default and frames fitting the address space. BLC/AWB still capture at C3/C4.
 With N=width*height, RGB first/last cycles are C(width+7)/C(N+width+6), and
 busy clears at C(N+width+7). Its output payload is three RAW-width channels;
 SRAM input remains one 16-bit RAW12 word per address.
+
+## P5 CCM public timing and coefficient ports
+
+Formal isp_pipeline_top wraps demosaic_pipeline and two registered CCM stages.
+SRAM, legal dimensions and C0/C3/C4 capture retain the P4 contract. Nine signed
+16-bit c00..c22 ports supply a row-major 3x3 matrix: row selects output R/G/B,
+column selects input R/G/B. Integer 4096 represents unity, -4096 represents
+minus unity; legal codes are -32768..32767 with 12 fractional bits.
+
+All nine codes are captured atomically at the CCM input valid+sof edge C(W+8),
+and that first pixel uses the same new matrix. Mid-frame external changes are
+ignored. Reset restores identity and clears both pipeline stages. First RGB,
+last RGB/frame_done and idle are C(W+9), C(N+W+8) and C(N+W+9). Busy includes
+both pending product and output valid stages. A start sampled while busy,
+including its clearing edge, is rejected and remembered; require a fresh
+low-to-high transition after observing idle. No AHB address map is added.

@@ -42,3 +42,16 @@ all coordinates/flags, final-output busy, tagged fatal and normal/SYNTHESIS
 functional dimension handling. Synthesizable RTL contains no function; helper
 functions exist only in testbenches to keep the independent oracle readable.
 All P4 logs and binaries are isolated under build/p4_demosaic.
+
+P5 adds tb_ccm.sv: make test-ccm-unit runs normal and SYNTHESIS-defined functional
+builds, each checking 6,504 cycles, 6,494 RGB pixels and 19,482 channel results.
+An independent longint quotient/remainder oracle tests eleven matrices against
+216 boundary RGB combinations each, then 4,096 continuous pixels. Asymmetric
+rows detect transposition; signed16 extremes, product cancellation, fractional
+rounding, lower clamp and upper saturation are included. Checks cover two-stage
+pre-edge hold, metadata delay, valid holes/invalid sof, all-nine atomic capture,
+first-pixel new coefficients, deterministic random mid-frame disturbances,
+consecutive 1x1 frames and reset in either stage. Busy covers both valid stages
+without blocking incoming pixels. Forced fatal is checked by log and unique
+PASS verdict, with binaries/logs isolated under build/p5_ccm/unit. Functions
+used for the testbench oracle are never included in synthesizable CCM RTL.
