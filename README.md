@@ -67,8 +67,8 @@ DEMOSAIC_GOLDEN_INPUT=/absolute/missing.npy make test-demosaic-pipeline
 P4 编译/日志集中于 `build/p4_demosaic/`，输入/黄金/dump 集中于
 `testdata/output/p4_demosaic/{inputs,golden,integration}/`。持久证据在
 `reports/p4_demosaic_execution/`；`make clean` 仅清理规定的 P0–P4
-可重建产物，保留 reports 和其他运行目录。详细执行记录见
-`plans/004_p4_demosaic_bilinear.md`，周期和数值说明见 docs。
+可重建产物，保留 reports 和其他运行目录。两轮完整验收及 282 份确定性文件哈希一致的
+证据均已保存。详细执行记录见 `plans/004_p4_demosaic_bilinear.md`，周期和数值说明见 docs。
 
 ## 后续完整 ISP 目标
 

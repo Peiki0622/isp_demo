@@ -2,7 +2,7 @@
 
 目标读者：Codex（代码代理）
 
-状态：执行中
+状态：已完成
 
 本轮目标：在已经通过 P0/P1、P2、P3 验收的 SRAM → Reader → BLC → AWB Gain RAW 链路之后，加入第一个真正的邻域算法模块 Demosaic（去马赛克），完成 RAW12 RGGB → RGB12 的转换。
 
@@ -646,19 +646,19 @@ docs: close P4 bilinear demosaic milestone
 
 ## 9. 重点易错项
 
-- [ ] 把 Bayer R/Gr/Gb/B 相位判断反。
-- [ ] x/y 和 3×3 window 中心错一拍。
-- [ ] 12 位直接做四项和导致溢出。
-- [ ] /2、/4 直接截断，没有 round-half-up。
-- [ ] 左右边界使用 clamp，破坏 Bayer 相位，而不是本计划的 mirror。
-- [ ] window 输出少一列/多一列或少最后一行。
-- [ ] input frame_done 后立刻 busy=0，导致 bottom border tail 丢失。
-- [ ] tail 输出顺序不是 raster order。
-- [ ] 第一个 RGB 输出后出现行首气泡。
-- [ ] 新一帧在 demosaic tail 尚未完成时启动。
-- [ ] P3 历史测试被直接改成 RGB 接口，失去 AWB-only 边界。
-- [ ] Python 和 RTL 对 border 采用不同映射。
-- [ ] compare 工具只比较 packed word，不指出具体 R/G/B 哪个通道错。
+- [x] 把 Bayer R/Gr/Gb/B 相位判断反。
+- [x] x/y 和 3×3 window 中心错一拍。
+- [x] 12 位直接做四项和导致溢出。
+- [x] /2、/4 直接截断，没有 round-half-up。
+- [x] 左右边界使用 clamp，破坏 Bayer 相位，而不是本计划的 mirror。
+- [x] window 输出少一列/多一列或少最后一行。
+- [x] input frame_done 后立刻 busy=0，导致 bottom border tail 丢失。
+- [x] tail 输出顺序不是 raster order。
+- [x] 第一个 RGB 输出后出现行首气泡。
+- [x] 新一帧在 demosaic tail 尚未完成时启动。
+- [x] P3 历史测试被直接改成 RGB 接口，失去 AWB-only 边界。
+- [x] Python 和 RTL 对 border 采用不同映射。
+- [x] compare 工具只比较 packed word，不指出具体 R/G/B 哪个通道错。
 
 ---
 
@@ -677,7 +677,7 @@ Codex 每完成一步更新实际提交哈希。
 | 6 | 完成 | e7b4314e7a2ee34b03e0e6ed3af710e56c85acef | make test-demosaic-unit | 64帧2566 RGB像素7698通道；寄存/复位/负例/硬件拒绝 PASS |
 | 7 | 完成 | ef237dfb90999b852a6ff7d6d6edc7a431745209 | bash scripts/run_demosaic_pipeline.sh controls; make test-p3-awb | 70小帧/4类复位/尺寸容量拒绝 PASS；完整旧回归 PASS |
 | 8 | 完成 | 6f9e4521e897a8518255ed2e26e165ba03e67131 | make test-demosaic-model test-demosaic-pipeline | 11项模型/CLI测试、四图案两帧2048 RGB和实际小帧对拍 PASS |
-| 9 | 执行中 | — | 完整负例及恢复 PASS；最终两轮待完成 | 50项Python与全层级回归入口已接好 |
+| 9 | 完成 | 1f4675bc4c29d79ed945f70bd792cb85831badd7 | make clean; make test-p4-demosaic (2 runs); compare P2/P3/P4; full RGB negatives | 两轮完整 PASS；282文件哈希一致；16编译/轮无警告错误；全部负例及恢复 PASS |
 
 ---
 
@@ -699,3 +699,18 @@ Raw NR 继续暂时旁路，待 RAW→RGB→CCM 主链稳定后再作为独立�
 - 所有新 RTL 无 function；必要窗口 FSM 采用三段式，寄存器按职责分块。
 
 - Step 7 为独立黄金验收正式 top，提前建立 Step 8 的 CLI、集成平台和运行脚本；先验收五种小尺寸控制，Step 8 再验收 CLI 失败和四图案两帧。没有临时复制数值算法的顶层平台。
+
+
+## 本轮最终验收结果
+
+- 从当前 3c5e140 向前实施，产品被测提交为 1f4675bc4c29d79ed945f70bd792cb85831badd7，全部 Step 0–9 已完成。
+- 三行 RAW12 行存储、显式当前样本前递及先读旧行后覆盖；window/RGB 各一级输出寄存。没有整帧 RTL 缓存、function 或额外算法。窗口采用三段式 FSM，配置/行角色/计数/载荷/坐标/有效位/标志独立分块，端口和长段均附模块化注释。
+- 保留 sram_raw_source C2、blc_pipeline C3 和 awb_pipeline C4；正式 RGB 首/末/空闲周期为 C(W+7)/C(N+W+6)/C(N+W+7)。BLC/AWB 仍在 C3/C4 帧首采样，整链 busy 覆盖预热及尾部。
+- 软件/工具合计 50 项测试；窗口 64 帧、22,004 个窗口、198,036 个样本（含实际宽 4095/4096）；RGB 单元 64 帧、2,566 个像素、7,698 个通道全部独立检查通过。
+- 五种实际小尺寸共 70 个完整控制帧，另有 20 次四位置复位/重启检查；四种 16×16 颜色图案各两帧，共 2,048 个 RGB 像素精确对拍。小帧各自生成真实尺寸 NPY/MEM/golden，没有复用大图前缀。
+- 正常和 SYNTHESIS 定义构建都通过功能验收。尺寸 17×2 独立暴露行宽拒绝，16×17 和 2×65535 暴露容量拒绝，16×16 恰好满 SRAM；旧 P0–P3 小帧及控制判据保留。
+- clean 后连续两轮完整 make test-p4-demosaic PASS；每轮 16 份编译日志无警告/错误，保留 380 份精简命令/日志/退出状态证据。全部 282 份确定性输入、黄金和实际输出 SHA256 一致，P2/P3/P4 compare-only 均 PASS。
+- WINDOW_CASE 和 DEMOSAIC_CASE 强制 fatal 的原生 VCS 退出为 0，严格 verdict=FAIL，Make 返回 2。R/G/B 各自完整 P0–P4 损坏注入和 compare-only 都返回 2，定位 index=42,x=10,y=2 并指出对应通道；输入和黄金哈希不变。
+- 缺失 RGB golden 由精确诊断拒绝。缺失 NPY 注入使旧 golden 删除，Make 返回 2 且编译命令时间戳不变；取消注入后恢复及比较 PASS，全部参考哈希恢复一致。
+- 默认启用 BLC/AWB/Demosaic；未实现 ISP 算法保持关闭。PPM 预览为可选后续工具，本轮未扩张实现范围。SYNTHESIS 定义是功能仿真构建，未做综合、时序或 PPA 验收。
+- 可重建 P4 产物只位于 build/p4_demosaic 和 testdata/output/p4_demosaic；持久证据位于 reports/p4_demosaic_execution，clean 保留所有 reports 和其他运行目录。产物审计没有发现散落文件。

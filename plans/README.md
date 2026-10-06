@@ -20,13 +20,13 @@
 
 ## 当前已验证链路
 
-SRAM → Reader → BLC → AWB Gain。
+SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → RGB12。
 
 P3 只实现外部可配置 R/G/B 增益的施加，不包含自动白平衡统计或增益估计。
 
-## 当前计划
+## 最近完成计划
 
-- 004_p4_demosaic_bilinear.md：建立 3×3 流式邻域窗口和双线性 Demosaic（去马赛克），把当前 RAW12 单通道流转换成 RGB12 三通道流。
+- 004_p4_demosaic_bilinear.md（已完成）：建立 3×3 流式邻域窗口和双线性 Demosaic（去马赛克），把当前 RAW12 单通道流转换成 RGB12 三通道流。
 
 P4 的主要新硬件能力：
 
@@ -45,3 +45,6 @@ P4 选择基础 3×3 bilinear（双线性）作为复现基线，不声称原实
 P4 完整验收后，默认进入 CCM（Color Correction Matrix，颜色校正矩阵），开始 RGB 域的 3×3 带符号定点矩阵乘加。
 
 Raw NR（原始域降噪）继续保持旁路，待 RAW → RGB → CCM 主链稳定后再作为独立里程碑插回并验收。
+
+P4 Step 0–9 已全部验收，两轮完整回归和 282 份确定性文件哈希一致；
+负例、恢复及逐阶段实际提交记录见 004。后续阶段尚未开始。

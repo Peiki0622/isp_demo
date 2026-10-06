@@ -281,7 +281,7 @@ full-chain acceptance. Independent P4 targets are test-demosaic-tools,
 test-demosaic-model, test-window-3x3, test-demosaic-unit and
 test-demosaic-pipeline. Compare-p4-demosaic only reads existing files.
 Five actual small dimensions (2x2,3x2,2x3,3x5,4x4) each run 14 complete control
-frames and four aborted/restarted frames. Main constant_rgb, rgb_gradient,
+frames and four reset/restart scenarios. Main constant_rgb, rgb_gradient,
 color_blocks and edge_pattern are 16x16 with per-frame offset/gain settings:
 frame0=64 and 6144/4096/8192, frame1=128 and 4096/5120/2048. Each frame uses
 its own RGB36 golden and actual dump. The total Python test count is 50.
