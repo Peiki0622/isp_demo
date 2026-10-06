@@ -9,7 +9,7 @@ export PYTHONDONTWRITEBYTECODE := 1
         test-p2-blc compare-p2-blc test-awb-model test-awb-unit test-awb-pipeline \
         test-p3-awb compare-p3-awb test-demosaic-tools test-demosaic-model \
         test-window-3x3 test-demosaic-unit test-demosaic-pipeline \
-        test-p4-demosaic compare-p4-demosaic clean
+        test-p4-demosaic compare-p4-demosaic test-ccm-model clean
 help:
 	@echo "make test-p4-demosaic  - complete P0-P3 and P4 tools/model/window/RGB regression"
 	@echo "make test-window-3x3   - all nine samples, continuous schedule and maximum widths"
@@ -52,6 +52,10 @@ test-awb-model:
 # P4 软件入口独立于旧 RAW 模型测试，包含后续全链黄金 CLI 用例。
 test-demosaic-model:
 	$(PYTHON) -m unittest discover -s model/tests -p 'test_demosaic*.py' -v
+
+# P5 软件入口与历史模型隔离；后续黄金 CLI 测试由同一模式发现。
+test-ccm-model:
+	$(PYTHON) -m unittest discover -s model/tests -p 'test_ccm*.py' -v
 
 test-window-3x3:
 	bash scripts/run_window_3x3.sh
