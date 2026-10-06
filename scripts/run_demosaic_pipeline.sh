@@ -45,7 +45,7 @@ if [[ $selection != compare ]]; then
         done
     fi
     sources=("$ROOT/tb/integration/tb_demosaic_pipeline.sv" "$ROOT/tb/models/sram_model.sv" \
-             "$ROOT/rtl/top/isp_pipeline_top.sv" "$ROOT/rtl/top/awb_pipeline.sv" "$ROOT/rtl/top/blc_pipeline.sv" \
+             "$ROOT/rtl/top/demosaic_pipeline.sv" "$ROOT/rtl/top/awb_pipeline.sv" "$ROOT/rtl/top/blc_pipeline.sv" \
              "$ROOT/rtl/top/sram_raw_source.sv" "$ROOT/rtl/memory/sram_reader.sv" "$ROOT/rtl/raw_domain/blc.sv" \
              "$ROOT/rtl/raw_domain/awb_gain.sv" "$ROOT/rtl/raw_domain/demosaic.sv" "$ROOT/rtl/common/window_3x3.sv")
     compile_vcs "$directory" tb_demosaic_pipeline "${sources[@]}"
