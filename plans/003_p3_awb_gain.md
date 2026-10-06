@@ -590,7 +590,7 @@ Codex 每完成一步更新实际提交哈希。
 | 3 | 完成 | 559d387fae4d9e5653da594b8930e83dc298a6a9 | make test-p2-blc | P0/P1 + P2 全通过；源码等价迁移，C3 断言未修改 |
 | 4 | 完成 | bcc9c0e6823169ccfc7a33e54755972291cfa77a | VCS W-2024.09 +define+SYNTHESIS compile; RTL review | 28 位乘积、29 位偏置和宽位饱和；分类寄存器、无 function |
 | 5 | 完成 | d2357ef875594003ffd24987bd166d1b61b2aec6 | make test-awb-unit | 45664 拍；45056 个穷举输入、四相位、独立余数公式、寄存保持及 fatal 负例 |
-| 6 | 未开始 | — | — | — |
+| 6 | 完成 | b5e385e2cd3558607b437977ec4c846d17157b4f | bash scripts/run_awb_pipeline.sh controls | 60 小帧及复位/容量/负例通过；提前引入 Step 7 CLI/平台以独立黄金验收控制 |
 | 7 | 未开始 | — | — | — |
 | 8 | 未开始 | — | — | — |
 
