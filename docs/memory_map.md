@@ -67,7 +67,7 @@ while the last BLC output is draining is discarded even if Reader is idle.
 
 ## P3 public pipeline timing
 
-The formal isp_pipeline_top wraps blc_pipeline and one AWB Gain register stage.
+The independent awb_pipeline wraps blc_pipeline and one AWB Gain register stage.
 Three 16-bit UQ4.12 gain_r/gain_g/gain_b inputs supplement black_level;
 4096 encodes unity. Accepted start is C0, BLC offset capture C3 and AWB
 three-gain capture C4. Final output occupies C4..C(N+3), with frame_done

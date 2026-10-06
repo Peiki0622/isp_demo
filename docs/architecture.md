@@ -56,7 +56,7 @@ Cortex-M0 will configure the ISP through AHB (Advanced High-performance Bus) map
 
 ## P3 implemented interface and timing
 
-The formal top implements `SRAM -> blc_pipeline -> awb_gain -> RAW12`.
+The independent awb_pipeline preserves `SRAM -> blc_pipeline -> awb_gain -> RAW12`.
 The independent blc_pipeline preserves P2's C3 first pixel and all previous
 control assertions. AWB adds unsigned 16-bit gain_r/gain_g/gain_b ports and
 uses input x/y for RGGB phase selection. It outputs one registered stage
@@ -70,7 +70,7 @@ AWB configuration at C4, independently of C0. Top start filtering uses
 busy cycles. Busy pulses and held-high start across completion cannot restart.
 Reset aborts all stages and clears the external start history.
 
-## P4 streaming RGB implementation contract
+## P4 implemented streaming RGB contract
 
 P4 extends the current workspace with `awb_pipeline -> demosaic -> RGB12`.
 Reader-only C2, BLC-only C3 and AWB-only C4 remain independent test boundaries.

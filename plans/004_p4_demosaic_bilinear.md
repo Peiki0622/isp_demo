@@ -669,15 +669,15 @@ Codex 每完成一步更新实际提交哈希。
 | Step | 状态 | 提交 | 验证命令 | 备注 |
 |---|---|---|---|---|
 | 0 | 完成 | 3c5e140ce36f7253ba0100225c52eebc67aa916e | make clean; make test-p3-awb | 当前版本完整 PASS；版本/日志见 reports/p4_demosaic_execution |
-| 1 | 完成 | 80d1225 | git diff --check; contract review | 接口、reflect、位宽和输出周期明确；默认仍关闭 |
-| 2 | 完成 | 709c6c4 | make test-blc-model test-awb-model test-demosaic-model | 旧22项及新6项模型测试 PASS |
-| 3 | 完成 | 66c1507 | make test-tools test-demosaic-tools | 旧11项和新6项工具测试 PASS；RGB 文件严格校验 |
-| 4 | 完成 | 43dc99b | make test-p3-awb; exact migration check | 完整 P0-P3 PASS；C4 与全部旧周期断言保留 |
-| 5 | 完成 | 591e894 | make test-window-3x3 | 64帧22004窗口198036样本；宽4095/4096、复位、负例及硬件拒绝 PASS |
-| 6 | 完成 | e7b4314 | make test-demosaic-unit | 64帧2566 RGB像素7698通道；寄存/复位/负例/硬件拒绝 PASS |
-| 7 | 完成 | ef237df | bash scripts/run_demosaic_pipeline.sh controls; make test-p3-awb | 70小帧/4类复位/尺寸容量拒绝 PASS；完整旧回归 PASS |
-| 8 | 未开始 | — | — | — |
-| 9 | 未开始 | — | — | — |
+| 1 | 完成 | 80d1225fd7db68d7cd36d800b27ecbb0af6b74a4 | git diff --check; contract review | 接口、reflect、位宽和输出周期明确；默认仍关闭 |
+| 2 | 完成 | 709c6c492839df1e3540b8f50ce2975e67ddeb8e | make test-blc-model test-awb-model test-demosaic-model | 旧22项及新6项模型测试 PASS |
+| 3 | 完成 | 66c15077cd0d4039173ea25db359f6e445f2b579 | make test-tools test-demosaic-tools | 旧11项和新6项工具测试 PASS；RGB 文件严格校验 |
+| 4 | 完成 | 43dc99b98db3a33cea931af47b4b83ca653bbe04 | make test-p3-awb; exact migration check | 完整 P0-P3 PASS；C4 与全部旧周期断言保留 |
+| 5 | 完成 | 591e8948b52230e93466094fcc17d3b1cb128ad3 | make test-window-3x3 | 64帧22004窗口198036样本；宽4095/4096、复位、负例及硬件拒绝 PASS |
+| 6 | 完成 | e7b4314e7a2ee34b03e0e6ed3af710e56c85acef | make test-demosaic-unit | 64帧2566 RGB像素7698通道；寄存/复位/负例/硬件拒绝 PASS |
+| 7 | 完成 | ef237dfb90999b852a6ff7d6d6edc7a431745209 | bash scripts/run_demosaic_pipeline.sh controls; make test-p3-awb | 70小帧/4类复位/尺寸容量拒绝 PASS；完整旧回归 PASS |
+| 8 | 完成 | 6f9e4521e897a8518255ed2e26e165ba03e67131 | make test-demosaic-model test-demosaic-pipeline | 11项模型/CLI测试、四图案两帧2048 RGB和实际小帧对拍 PASS |
+| 9 | 执行中 | — | 完整负例及恢复 PASS；最终两轮待完成 | 50项Python与全层级回归入口已接好 |
 
 ---
 

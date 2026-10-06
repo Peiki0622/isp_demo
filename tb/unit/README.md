@@ -32,3 +32,13 @@ frame gains, valid holes, invalid sof and reset unity. Hand-calculated cases
 check half-up and saturation before narrowing, while pre-edge checks reject
 zero/unity combinational bypass. Logs and binaries stay in build/p3_awb/unit.
 Forced fatal must propagate through Make even when simv returns zero.
+
+P4 adds tb_window_3x3: make test-window-3x3 checks 64 frames and 22,004 windows,
+all 198,036 samples, actual raster order, exact warm-up/continuous/tail cycles,
+widths 4095/4096, changing sizes and reset without clearing line arrays.
+make test-demosaic-unit checks 64 frames, 2,566 RGB pixels and an independent
+nearest-color quotient/remainder oracle. Both check pre-edge register hold,
+all coordinates/flags, final-output busy, tagged fatal and normal/SYNTHESIS
+functional dimension handling. Synthesizable RTL contains no function; helper
+functions exist only in testbenches to keep the independent oracle readable.
+All P4 logs and binaries are isolated under build/p4_demosaic.

@@ -104,14 +104,18 @@ module window_3x3 #(
         incoming_row = 3'b000;
         case (state_q)
             STREAM: begin
+                // 已收到右下邻点：中心是输入的左上一点，底行含当前像素。
                 if (write_pixel && in_x >= 1 && in_y >= 1) begin
                     emit = 1'b1; emit_x = in_x - 16'd1; emit_y = in_y - 16'd1;
                     incoming_row = 3'b100;
                     if (in_y == 1) begin
+                        // 第一输出行的上邻也镜像到当前输入行，需要相同前递。
                         read_bank[0] = write_bank_q;
                         incoming_row[0] = 1'b1;
                     end
                 end else if (write_pixel && in_x == 0 && in_y >= 2) begin
+                    // 新行第一列只服务前一输出行的最右中心；写 bank 中的
+                    // 旧行 y-3 在本沿读出后才覆盖。y=2 的顶边改读镜像行1。
                     emit = 1'b1; emit_x = last_x_q; emit_y = in_y - 16'd2;
                     read_bank[0] = (in_y == 2) ? previous_bank_q : write_bank_q;
                     read_bank[1] = older_bank_q;
@@ -119,10 +123,12 @@ module window_3x3 #(
                 end
             end
             TAIL_RIGHT: begin
+                // 最后输入像素已输出 (W-2,H-2)，先补 (W-1,H-2)。
                 emit = 1'b1; emit_x = last_x_q; emit_y = last_y_q - 16'd1;
                 if (last_y_q == 1) read_bank[0] = write_bank_q;
             end
             TAIL_LAST: begin
+                // 底边上下邻都取倒数第二行，中心取最后输入行，逐列排空。
                 emit = 1'b1; emit_x = tail_x_q; emit_y = last_y_q;
                 read_bank[0] = previous_bank_q;
                 read_bank[1] = write_bank_q;

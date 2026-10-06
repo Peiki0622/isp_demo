@@ -166,7 +166,7 @@ hold checks and post-NBA checks must expose bypass or sideband misalignment.
 Cover both green phases, distinct R/B gains, zero/unity/half/fractional/max
 gains, rounding midpoint neighbors, saturation, continuous streams, valid
 holes, invalid sof, atomic frame configuration, consecutive 1x1 frames and
-synchronous reset. The formal top must check C4 first output, C(N+3) last
+synchronous reset. The independent AWB-only top must check C4 first output, C(N+3) last
 output/busy and C(N+4) idle, AWB-only drain start pulses, held start, latched
 dimensions, zero/capacity rejection and reset/restart. Small-frame golden files
 must use their actual dimensions because RGGB phase depends on raster width.
@@ -273,3 +273,32 @@ clean followed by two complete P4 runs with identical deterministic file hashes.
 P4 products live only under build/p4_demosaic and testdata/output/p4_demosaic;
 persistent logs/hashes live under reports/p4_demosaic_execution. No synthesis,
 timing, PPA or visual-only acceptance is performed.
+
+## P4 reproducible commands and evidence
+
+Run make test-p4-demosaic for sequential P0-P3 plus P4 tools/model/window/unit/
+full-chain acceptance. Independent P4 targets are test-demosaic-tools,
+test-demosaic-model, test-window-3x3, test-demosaic-unit and
+test-demosaic-pipeline. Compare-p4-demosaic only reads existing files.
+Five actual small dimensions (2x2,3x2,2x3,3x5,4x4) each run 14 complete control
+frames and four aborted/restarted frames. Main constant_rgb, rgb_gradient,
+color_blocks and edge_pattern are 16x16 with per-frame offset/gain settings:
+frame0=64 and 6144/4096/8192, frame1=128 and 4096/5120/2048. Each frame uses
+its own RGB36 golden and actual dump. The total Python test count is 50.
+
+P4 uses normal and SYNTHESIS-defined window, arithmetic and full-chain builds.
+Top test MAX_WIDTH=16, ADDR_W=8 separates width overflow (17x2) from address
+capacity overflow (16x17 and 2x65535); 16x16 fits exactly. The window tests
+also use the real default width capacity 4096. SYNTHESIS-defined compilation
+is functional simulation, not synthesis or a physical timing result.
+
+WINDOW_CASE=forced_failure and DEMOSAIC_CASE=forced_failure must fail their
+unit Make targets. DEMOSAIC_CORRUPT_OUTPUT=R/G/B must each fail complete
+make test-p4-demosaic at index=42,x=10,y=2 and name that channel; existing-file
+comparison must fail afterward. Input/golden hashes remain unchanged.
+DEMOSAIC_GOLDEN_INPUT pointing to a missing NPY must delete the old target,
+leave no partial golden and keep the compilation command timestamp unchanged.
+Cancel injection variables and rerun test-demosaic-pipeline to restore all
+frames. Final logs, raw/checked fatal verdicts, generation-failure evidence,
+recovery, two complete runs and deterministic hashes are retained under
+reports/p4_demosaic_execution, outside the clean whitelist.

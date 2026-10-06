@@ -28,3 +28,15 @@ python3 -m model.generate_awb_golden --input INPUT.npy --output OUTPUT.mem \
 The CLI always applies BLC then AWB to the original SRAM array; it removes
 its old target before generation and returns nonzero for invalid data/config.
 Golden files use each frame's real dimensions, including odd-width frames.
+
+P4 adds demosaic.apply_demosaic(raw_2d): require integer RAW12 of at least 2x2,
+use phase-preserving reflect and return a new uint16 (H,W,3) RGB12 array.
+run_pipeline applies BLC, AWB, then Demosaic when pipeline.demosaic is true;
+missing enable remains false for historical RAW callers. Default project YAML
+now enables the three implemented stages, while parsing remains caller-owned.
+Use make test-demosaic-model and make test-demosaic-tools. Generate full-chain
+RGB36 with python3 -m model.generate_demosaic_golden using the same --input,
+--output, --black-level and three gain-code options as P3. Each pixel is exactly
+nine hexadecimal digits, R/G/B each occupying 12 bits. The CLI removes stale
+and partial targets on computation/I/O failure and protects identical input/
+output paths. No image library is required; numerical comparison is acceptance.

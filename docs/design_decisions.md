@@ -78,3 +78,9 @@ a necessary three-part tail FSM; arithmetic and top wrappers need no new FSM.
 All new ports and long blocks receive grouped explanatory comments, and all
 synthesizable registers are separated by function. Keep local VCS and the
 existing Python/NumPy/unittest dependencies without image/YAML dependencies.
+
+P4 functional acceptance enables BLC, AWB Gain and Demosaic in the default
+configuration. Final regression includes complete historical boundaries and
+per-channel corruption through the full Make entry, stale-golden rejection,
+recovery and two complete deterministic runs. Pixel input stays RAW12/SRAM16;
+formal output is RGB12/RGB36. Optional PPM preview remains future tooling.
