@@ -61,7 +61,7 @@ if [[ $selection != compare ]]; then
     fi
 
     sources=("$ROOT/tb/integration/tb_awb_pipeline.sv" "$ROOT/tb/models/sram_model.sv" \
-             "$ROOT/rtl/top/isp_pipeline_top.sv" "$ROOT/rtl/top/blc_pipeline.sv" \
+             "$ROOT/rtl/top/awb_pipeline.sv" "$ROOT/rtl/top/blc_pipeline.sv" \
              "$ROOT/rtl/top/sram_raw_source.sv" "$ROOT/rtl/memory/sram_reader.sv" \
              "$ROOT/rtl/raw_domain/blc.sv" "$ROOT/rtl/raw_domain/awb_gain.sv")
     compile_vcs "$directory" tb_awb_pipeline "${sources[@]}"
