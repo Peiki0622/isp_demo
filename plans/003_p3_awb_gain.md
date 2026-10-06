@@ -2,7 +2,7 @@
 
 目标读者：Codex（代码代理）
 
-状态：执行中
+状态：已完成
 
 本轮目标：在已经通过 P0/P1 和 P2 验收的 SRAM → Reader → BLC（黑电平校正）链路后加入 AWB Gain（White Balance Gain，白平衡增益施加）模块，建立“RGGB 位置判定 → 固定点增益选择 → 乘法 → 舍入 → RAW12 饱和 → 一级寄存输出”的完整硬件与软件精确对拍闭环。
 
@@ -40,25 +40,25 @@ P2 最终记录提交：
 
 以下条件全部满足才算 P3 完成：
 
-- [ ] make test-p0-p1 继续通过，Reader-only C2 时序不变。
-- [ ] make test-p2-blc 继续通过，BLC-only C3 时序不变。
-- [ ] 软件侧新增精确整数 AWB Gain 黄金模型。
-- [ ] RTL 能根据 RGGB 坐标奇偶正确选择 R/G/B 增益，两个绿色位置使用同一个 gain_g。
-- [ ] gain_r/gain_g/gain_b 采用冻结的无符号 UQ4.12 固定点格式。
-- [ ] 乘法结果采用 round-half-up（正数四舍五入）后右移 12 位。
-- [ ] 超过 RAW12 最大值 4095 的结果饱和为 4095，不允许回绕。
-- [ ] AWB Gain 固定为一级寄存输出，稳定后仍为每周期 1 像素吞吐。
-- [ ] data、x/y、valid、sof/eol/frame_done 全部严格对齐。
-- [ ] 三个增益只在有效 sof 帧首采样；第一像素使用本帧新配置；帧中变化不影响当前帧。
-- [ ] isp_pipeline_top 变为 SRAM → Reader → BLC → AWB Gain。
-- [ ] 顶层第一个最终像素为 C4，最后一个最终像素为 C(N+3)，busy 在 C(N+4) 清零。
-- [ ] 至少四类 16×16 图案、每类两帧，与 Python 全链黄金结果逐像素完全一致。
-- [ ] 至少一组测试明确覆盖 R、Gr、Gb、B 四个拜耳位置，证明两个 G 位置使用同一 gain_g。
-- [ ] 至少覆盖 unity、0.5、非整数增益、零增益和输出饱和。
-- [ ] 故意损坏输出时完整 P3 命令必须失败并定位首个差异。
-- [ ] config/default.yaml 不再把未实现算法默认标成启用。
-- [ ] README、fixed_point、design_decisions、verification、architecture 和计划执行记录同步。
-- [ ] 不实现 Raw NR、Demosaic、CCM、完整 AWB 估计或总线寄存器。
+- [x] make test-p0-p1 继续通过，Reader-only C2 时序不变。
+- [x] make test-p2-blc 继续通过，BLC-only C3 时序不变。
+- [x] 软件侧新增精确整数 AWB Gain 黄金模型。
+- [x] RTL 能根据 RGGB 坐标奇偶正确选择 R/G/B 增益，两个绿色位置使用同一个 gain_g。
+- [x] gain_r/gain_g/gain_b 采用冻结的无符号 UQ4.12 固定点格式。
+- [x] 乘法结果采用 round-half-up（正数四舍五入）后右移 12 位。
+- [x] 超过 RAW12 最大值 4095 的结果饱和为 4095，不允许回绕。
+- [x] AWB Gain 固定为一级寄存输出，稳定后仍为每周期 1 像素吞吐。
+- [x] data、x/y、valid、sof/eol/frame_done 全部严格对齐。
+- [x] 三个增益只在有效 sof 帧首采样；第一像素使用本帧新配置；帧中变化不影响当前帧。
+- [x] isp_pipeline_top 变为 SRAM → Reader → BLC → AWB Gain。
+- [x] 顶层第一个最终像素为 C4，最后一个最终像素为 C(N+3)，busy 在 C(N+4) 清零。
+- [x] 至少四类 16×16 图案、每类两帧，与 Python 全链黄金结果逐像素完全一致。
+- [x] 至少一组测试明确覆盖 R、Gr、Gb、B 四个拜耳位置，证明两个 G 位置使用同一 gain_g。
+- [x] 至少覆盖 unity、0.5、非整数增益、零增益和输出饱和。
+- [x] 故意损坏输出时完整 P3 命令必须失败并定位首个差异。
+- [x] config/default.yaml 不再把未实现算法默认标成启用。
+- [x] README、fixed_point、design_decisions、verification、architecture 和计划执行记录同步。
+- [x] 不实现 Raw NR、Demosaic、CCM、完整 AWB 估计或总线寄存器。
 
 ---
 
@@ -562,19 +562,19 @@ docs: close P3 AWB gain milestone
 
 ## 7. 重点易错项
 
-- [ ] 把 gain 的 4096 当成 4096 倍，而不是 UQ4.12 的 1.0。
-- [ ] 12×16 乘法结果被 16 位变量截断。
-- [ ] 直接右移导致始终向下截断，没有加 2048 舍入。
-- [ ] 舍入后超过 4095 回绕而不是饱和。
-- [ ] Gr/Gb 相位选错。
-- [ ] x/y 与像素数据错一拍，导致 Bayer 相位错色。
-- [ ] 第一像素仍使用上一帧 gain。
-- [ ] 帧中外部 gain 变化渗入当前帧。
-- [ ] gain=1.0 时数值正确，但模块为了“优化”变成零延迟，破坏固定时序。
-- [ ] P2 旧测试被整体后移一拍而失去历史边界。
-- [ ] 顶层 busy 在 AWB 最后一拍提前清零。
-- [ ] Python 使用 float，RTL 使用定点，造成边界像素无法精确对拍。
-- [ ] config/default.yaml 继续把未实现模块标成 true。
+- [x] 4096 明确编码 UQ4.12 的 1.0，软件与 RTL unity 穷举一致。
+- [x] 12×16 乘积完整保留 28 位，65535 增益穷举通过。
+- [x] 先加 2048 再移位；2047/2048/2049 中点邻域和独立余数参考一致。
+- [x] 宽位结果先饱和再截取 RAW12，4095×4097 舍入越界得到 4095。
+- [x] R/Gr/Gb/B 手算与全链对拍通过，两个 G 共用 gain_g。
+- [x] 坐标、数据和全部侧带按同一拍寄存，奇数宽度实际尺寸黄金通过。
+- [x] 有效 sof 当拍新配置直接参与首像素计算，连续帧首及 C4 采样检查通过。
+- [x] 帧内同时扰动三路增益不影响输出，无效 sof 不更新保存值。
+- [x] zero/unity 均保持一级寄存，沿前输出保持及沿后精确值检查通过。
+- [x] P2 原周期断言保留在 blc_pipeline，C3 首像素不变。
+- [x] busy 覆盖 C(N+3) 最终末像素，C(N+4) 清零；排空时 start 被忽略。
+- [x] Python 全程宽位整数，拒绝浮点输入和配置，全部像素精确一致。
+- [x] 默认只启用已实现的 BLC 与 AWB Gain，三增益均为整数 4096。
 
 ---
 
@@ -584,7 +584,7 @@ Codex 每完成一步更新实际提交哈希。
 
 | Step | 状态 | 提交 | 验证命令 | 备注 |
 |---|---|---|---|---|
-| 0 | 完成 | 0ef032e | make clean; make test-p2-blc | 当前 HEAD 全回归 PASS；版本存于 reports/p3_awb_execution |
+| 0 | 完成 | 0ef032ea5eb26016e1db9843f9b19e4e6450942d | make clean; make test-p2-blc | 当前 HEAD 全回归 PASS；版本存于 reports/p3_awb_execution |
 | 1 | 完成 | 6e9ca6461d5da3a9fd108914b678d76a65bed742 | git diff --check; manual contract review | UQ4.12、RGGB、帧首采样和一级流水已明确；AWB 待最终验收启用 |
 | 2 | 完成 | ef9813e18748307c942526a22c07cc891891aad5 | make test-blc-model test-awb-model | 11 项 P2 + 7 项 AWB 测试；11 个边界增益穷举全部 RAW12 |
 | 3 | 完成 | 559d387fae4d9e5653da594b8930e83dc298a6a9 | make test-p2-blc | P0/P1 + P2 全通过；源码等价迁移，C3 断言未修改 |
@@ -592,7 +592,19 @@ Codex 每完成一步更新实际提交哈希。
 | 5 | 完成 | d2357ef875594003ffd24987bd166d1b61b2aec6 | make test-awb-unit | 45664 拍；45056 个穷举输入、四相位、独立余数公式、寄存保持及 fatal 负例 |
 | 6 | 完成 | b5e385e2cd3558607b437977ec4c846d17157b4f | bash scripts/run_awb_pipeline.sh controls | 60 小帧及复位/容量/负例通过；提前引入 Step 7 CLI/平台以独立黄金验收控制 |
 | 7 | 完成 | 9266cca444511e93f32e70b03531b39d0cab6a0d | make test-awb-model test-awb-pipeline | 11 项 AWB 模型/CLI 测试、四图案两帧 2048 像素精确一致，含 60 小帧控制回归 |
-| 8 | 未开始 | — | — | — |
+| 8 | 完成 | 71109140baf933452fc1b6be8c730dd2741667b7 | make clean; make test-p3-awb (2 runs); make compare-p2-blc compare-p3-awb | 150 哈希相同；fatal/缺失黄金/损坏输出/生成失败负例通过，恢复后再次一致 |
+
+### 最终验收说明
+
+- 从拉取后的当前 HEAD 0ef032e 向前实现；未回退到文中历史 P2 冻结提交。工具为容器 VCS W-2024.09、Python 3.6.6、NumPy 1.19.5。
+- scale_pixel(pixel, gain_code) 固定 UQ4.12，不开放可变小数位接口；apply_awb_gain 只接受非空二维 RGGB 整数帧。run_pipeline 明确按 BLC→AWB 顺序运行，P2 黄金 CLI 保持独立。
+- Step 6 提前落地 Step 7 的全链 CLI 和公开端口测试平台，以实际尺寸独立黄金验收顶层控制；Step 7 再补全四图案两帧对拍和 CLI 失败测试。小帧使用实际宽/高生成输入与黄金，未复用 16×16 黄金前缀。
+- 两轮完整 make test-p3-awb 均通过：33 项 Python 测试，AWB 单元 45,664 拍（含 45,056 个穷举输入），60 个小帧控制及复位/重启，四图案两帧 2,048 个 P3 像素精确对拍。P0/P1 C2 与 P2 C3 回归均保持，正式 top C4 和 busy 排空时序通过。
+- 两轮共 150 份确定性输入、黄金、实际输出的 SHA256 一致。两轮各 10 份编译日志均无警告和错误；正例仿真日志也无警告或错误。正常和 SYNTHESIS 定义构建均按容量契约验收。
+- AWB_CASE=forced_failure 的 VCS 原始退出码为 0，严格脚本判 FAIL，Make 返回 2。缺失黄金给出 AWB_GOLDEN_FILE_ERROR 且无正常 PASS。AWB_CORRUPT_OUTPUT=1 的完整 P3 命令及 compare-only 均返回 2，定位 index=42、x=10、y=2；输入和黄金哈希保持不变。
+- AWB_GOLDEN_INPUT 指向缺失 NPY 时，旧目标被删除，Make 返回 2，编译命令时间戳未改变且没有后续仿真。取消注入后恢复，P2/P3 比较通过，150 份文件哈希再次与两轮一致。
+- 默认仅 BLC 和 AWB Gain 为 true。新增 RTL 端口分组详细注释、寄存器按配置/数值/坐标/有效位/标志分类；无 function、无新增 FSM，Reader 保持三段式 FSM。未启动后续 ISP 算法，也未做综合、时序或 PPA 验收。
+- 日志、版本、命令、两轮哈希、负例及恢复报告集中在 reports/p3_awb_execution/，最终中文说明为 acceptance.txt。可重建产物仅在 build/p3_awb/ 与 testdata/output/p3_awb/；均由现有 Git ignore 规则隔离，clean 保留证据与其他运行目录。
 
 ---
 
