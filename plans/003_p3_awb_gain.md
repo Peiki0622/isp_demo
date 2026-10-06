@@ -589,7 +589,7 @@ Codex 每完成一步更新实际提交哈希。
 | 2 | 完成 | ef9813e18748307c942526a22c07cc891891aad5 | make test-blc-model test-awb-model | 11 项 P2 + 7 项 AWB 测试；11 个边界增益穷举全部 RAW12 |
 | 3 | 完成 | 559d387fae4d9e5653da594b8930e83dc298a6a9 | make test-p2-blc | P0/P1 + P2 全通过；源码等价迁移，C3 断言未修改 |
 | 4 | 完成 | bcc9c0e6823169ccfc7a33e54755972291cfa77a | VCS W-2024.09 +define+SYNTHESIS compile; RTL review | 28 位乘积、29 位偏置和宽位饱和；分类寄存器、无 function |
-| 5 | 未开始 | — | — | — |
+| 5 | 完成 | d2357ef875594003ffd24987bd166d1b61b2aec6 | make test-awb-unit | 45664 拍；45056 个穷举输入、四相位、独立余数公式、寄存保持及 fatal 负例 |
 | 6 | 未开始 | — | — | — |
 | 7 | 未开始 | — | — | — |
 | 8 | 未开始 | — | — | — |
