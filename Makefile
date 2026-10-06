@@ -6,15 +6,21 @@ export PYTHONDONTWRITEBYTECODE := 1
 
 .PHONY: help patterns test-tools test-sram-model test-sram-reader test-pipeline \
         test-p0-p1 compare-p0-p1 test-blc-model test-blc-unit test-blc-pipeline \
-        test-p2-blc compare-p2-blc test-awb-model test-awb-unit test-awb-pipeline clean
+        test-p2-blc compare-p2-blc test-awb-model test-awb-unit test-awb-pipeline \
+        test-p3-awb compare-p3-awb clean
 help:
+	@echo "make test-p3-awb       - complete P0/P1, P2 and AWB model/unit/full-chain regression"
 	@echo "make test-p2-blc       - complete P0/P1 plus BLC model/unit/integration regression"
 	@echo "make test-p0-p1        - independent Reader-only regression"
 	@echo "make test-blc-model    - integer golden model and golden-file CLI tests"
 	@echo "make test-blc-unit     - cycle-exact BLC unit regression"
 	@echo "make test-blc-pipeline - controls, reset, capacity and four-pattern two-frame comparison"
 	@echo "make compare-p2-blc    - recheck existing BLC frame dumps without regenerating"
-	@echo "make clean            - remove only named P0/P1 and P2 generated artifacts"
+	@echo "make test-awb-model    - exact RGGB integer model and full-chain golden CLI tests"
+	@echo "make test-awb-unit     - exhaustive AWB arithmetic and cycle-exact unit regression"
+	@echo "make test-awb-pipeline - small-frame controls plus four-pattern two-frame comparison"
+	@echo "make compare-p3-awb    - recheck existing AWB frame dumps without regenerating"
+	@echo "make clean            - remove only named P0/P1, P2 and P3 generated artifacts"
 
 # 输入向量保持 P0/P1 文件格式和命名；确定性 NPY 与 MEM 内容一一对应。
 patterns:
@@ -75,9 +81,22 @@ test-p2-blc:
 compare-p2-blc:
 	bash scripts/run_blc_pipeline.sh compare
 
+# P3 顺序先验收完整 P0/P1 + P2，再执行 AWB 各层级，任一步失败即停止。
+# 不能用并行依赖列出 EDA 目标，以免同一运行目录、日志和许可证发生竞争。
+test-p3-awb:
+	$(MAKE) test-p2-blc
+	$(MAKE) test-awb-model
+	$(MAKE) test-awb-unit
+	$(MAKE) test-awb-pipeline
+	@echo "P3 AWB PASS"
+
+# 仅比较已有的八份 P3 输出；不会重新生成数据而覆盖待定位的错误。
+compare-p3-awb:
+	bash scripts/run_awb_pipeline.sh compare
+
 # 清理只覆盖本项目规定的可重建产物；保留 reports 验收记录及其他运行目录。
 clean:
-	rm -rf build/p0_p1 build/p2_blc testdata/output/p0_p1 testdata/output/p2_blc
+	rm -rf build/p0_p1 build/p2_blc build/p3_awb testdata/output/p0_p1 testdata/output/p2_blc testdata/output/p3_awb
 	@for pattern in addr_ramp flat checker gradient; do \
 		rm -f "testdata/synthetic/$${pattern}_16x16.mem" "testdata/synthetic/$${pattern}_16x16.npy" "testdata/synthetic/$${pattern}_16x16.json"; \
 	done

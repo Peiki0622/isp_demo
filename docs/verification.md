@@ -156,7 +156,7 @@ in `reports/p2_blc_execution/`, preserved outside cleanable simulator databases.
 Compilation with SYNTHESIS defined is a functional simulation check, not a
 synthesis, timing, FPGA or PPA result.
 
-## P3 planned acceptance contract
+## P3 acceptance contract
 
 Keep P0/P1 C2 and P2 C3 regressions independently unchanged. Verify AWB
 against external integer stimulus at the unit boundary and Python BLC->AWB
@@ -178,3 +178,69 @@ failed golden generation must propagate nonzero. Final acceptance requires
 two full P3 regressions with identical deterministic vectors/golden/dump hashes.
 Artifacts stay in build/p3_awb and testdata/output/p3_awb; retained evidence
 stays in reports/p3_awb_execution outside cleanable simulator databases.
+
+## P3 reproducible commands and evidence
+
+```sh
+make clean
+make test-p3-awb
+make test-p3-awb
+make compare-p2-blc
+make compare-p3-awb
+```
+
+The complete entry first runs test-p2-blc (including all P0/P1), then
+test-awb-model, test-awb-unit and test-awb-pipeline in order. There are 33
+Python tests: 11 tools, 11 BLC model/CLI and 11 AWB model/CLI. The AWB
+unit checks 45,664 register cycles, including 45,056 exhaustive RAW12/gain
+pairs across 11 gains, hand-calculated phase/rounding/saturation cases,
+configuration atomicity, holes, invalid sof, pre-edge holding and reset unity.
+
+The AWB top controls run ten complete frames for each of 1x1, 2x2, 7x1,
+1x7, 3x5 and 4x4. Each dimension uses its own raw input and golden arrays.
+They check seven start/size modes, two configuration switches, three zero-size
+rejections, synchronous abort and restart. Inputs at start intentionally
+differ from the target: black level changes just before C3, gain codes just
+before C4, and both are disturbed afterward. Four 16x16 patterns then run
+two frames each, with independent golden files and external comparisons.
+
+| Pattern | Frame | Black level | R / G / B codes |
+|---|---|---|---|
+| addr_ramp | 0 | 64 | 6144 / 4096 / 8192 |
+| addr_ramp | 1 | 128 | 4096 / 5120 / 2048 |
+| flat | 0 | 1024 | 8192 / 4096 / 6144 |
+| flat | 1 | 64 | 4096 / 4096 / 4096 |
+| checker | 0 | 512 | 65535 / 2048 / 4096 |
+| checker | 1 | 4095 | 0 / 65535 / 4096 |
+| gradient | 0 | 256 | 4097 / 6144 / 8192 |
+| gradient | 1 | 0 | 2048 / 4096 / 5120 |
+
+Run isolated controls with `bash scripts/run_awb_pipeline.sh controls`.
+Normal and SYNTHESIS-defined builds verify capacity rejection; defining
+SYNTHESIS is a simulation of the hardware path, not a synthesis result.
+`build/p3_awb/{unit,pipeline,pipeline_hardware}/` retains versions, exact
+commands, work directories, compile logs and per-case raw/checked verdicts.
+Inputs are in `testdata/output/p3_awb/inputs/<WxH>/`, goldens in
+`golden/controls/<WxH>/` and `golden/<pattern>/`, and eight actual frame
+dumps in `integration/<pattern>/`. No generated artifact belongs in Git.
+Clean removes only the named P0/P1/P2/P3 products and standard synthetic
+patterns, preserving reports and other run directories.
+
+Failure propagation commands:
+
+```sh
+AWB_CASE=forced_failure make test-awb-unit
+AWB_CORRUPT_OUTPUT=1 make test-p3-awb
+make compare-p3-awb
+AWB_GOLDEN_INPUT=/absolute/missing.npy make test-awb-pipeline
+```
+
+The corruption command changes only addr_ramp frame 0 actual pixel 42 after
+RTL simulation and before comparison. Both the complete command and compare-only
+command must fail at index=42, x=10, y=2. Fatal and missing golden cases are
+also checked automatically using exact diagnostics and no normal PASS marker.
+The missing-input injection must remove the old first golden and stop before
+compilation/simulation/comparison. Restore with `make test-awb-pipeline` without
+injection variables, then recheck existing dumps. Retained final evidence and
+deterministic hashes are in `reports/p3_awb_execution/`; logs and generated
+databases are excluded from hash comparisons. No Fmax or PPA conclusion is made.

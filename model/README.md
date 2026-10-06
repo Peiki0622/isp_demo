@@ -17,3 +17,14 @@ The format is fixed UQ4.12 (4096=unity); images must be nonempty 2D integer
 RAW12 arrays. All intermediate arithmetic widens before multiplication, and
 outputs are new uint16 arrays. run_pipeline applies BLC then AWB, with missing
 enables defaulting to false and missing gains to 4096. Run make test-awb-model.
+
+Generate full-chain P3 golden files with:
+
+```sh
+python3 -m model.generate_awb_golden --input INPUT.npy --output OUTPUT.mem \
+  --black-level 64 --gain-r 8192 --gain-g 2048 --gain-b 6144
+```
+
+The CLI always applies BLC then AWB to the original SRAM array; it removes
+its old target before generation and returns nonzero for invalid data/config.
+Golden files use each frame's real dimensions, including odd-width frames.

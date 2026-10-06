@@ -35,71 +35,71 @@ control_args() {
 }
 
 if [[ $selection != compare ]]; then
-for size in 1x1 2x2 7x1 1x7 3x5 4x4; do
-    width=${size%x*}; height=${size#*x}
-    "$PYTHON" "$ROOT/tools/generate_patterns.py" --width "$width" --height "$height" \
-        --output "$input_root/$size"
-    generate_golden "$input_root/$size/flat_${size}.npy" \
-        "$golden_root/controls/$size/frame_0.mem" 64 8192 2048 6144
-    generate_golden "$input_root/$size/flat_${size}.npy" \
-        "$golden_root/controls/$size/frame_1.mem" 128 2048 6144 4097
-done
-if [[ $selection == all ]]; then
-    "$PYTHON" "$ROOT/tools/generate_patterns.py" --width 16 --height 16 --output "$input_root/16x16"
-    for index in 0 1 2 3; do
-        pattern=${patterns[$index]}
-        source_npy="$input_root/16x16/${pattern}_16x16.npy"
-        # 仅用于验收生成失败传播：覆盖第一份黄金的输入，不修改 SRAM MEM 或其他帧。
-        # CLI 会移除该帧旧目标，set -e 在失败时阻止编译/仿真/比较继续执行。
-        first_source=$source_npy
-        if [[ $index == 0 ]]; then first_source=${AWB_GOLDEN_INPUT:-$source_npy}; fi
-        generate_golden "$first_source" "$golden_root/$pattern/frame_0.mem" \
-            "${black_first[$index]}" "${r_first[$index]}" "${g_first[$index]}" "${b_first[$index]}"
-        generate_golden "$source_npy" "$golden_root/$pattern/frame_1.mem" \
-            "${black_second[$index]}" "${r_second[$index]}" "${g_second[$index]}" "${b_second[$index]}"
+    for size in 1x1 2x2 7x1 1x7 3x5 4x4; do
+        width=${size%x*}; height=${size#*x}
+        "$PYTHON" "$ROOT/tools/generate_patterns.py" --width "$width" --height "$height" \
+            --output "$input_root/$size"
+        generate_golden "$input_root/$size/flat_${size}.npy" \
+            "$golden_root/controls/$size/frame_0.mem" 64 8192 2048 6144
+        generate_golden "$input_root/$size/flat_${size}.npy" \
+            "$golden_root/controls/$size/frame_1.mem" 128 2048 6144 4097
     done
-fi
+    if [[ $selection == all ]]; then
+        "$PYTHON" "$ROOT/tools/generate_patterns.py" --width 16 --height 16 --output "$input_root/16x16"
+        for index in 0 1 2 3; do
+            pattern=${patterns[$index]}
+            source_npy="$input_root/16x16/${pattern}_16x16.npy"
+            # 仅用于验收生成失败传播：覆盖第一份黄金的输入，不修改 SRAM MEM 或其他帧。
+            # CLI 会移除该帧旧目标，set -e 在失败时阻止编译/仿真/比较继续执行。
+            first_source=$source_npy
+            if [[ $index == 0 ]]; then first_source=${AWB_GOLDEN_INPUT:-$source_npy}; fi
+            generate_golden "$first_source" "$golden_root/$pattern/frame_0.mem" \
+                "${black_first[$index]}" "${r_first[$index]}" "${g_first[$index]}" "${b_first[$index]}"
+            generate_golden "$source_npy" "$golden_root/$pattern/frame_1.mem" \
+                "${black_second[$index]}" "${r_second[$index]}" "${g_second[$index]}" "${b_second[$index]}"
+        done
+    fi
 
-sources=("$ROOT/tb/integration/tb_awb_pipeline.sv" "$ROOT/tb/models/sram_model.sv" \
-         "$ROOT/rtl/top/isp_pipeline_top.sv" "$ROOT/rtl/top/blc_pipeline.sv" \
-         "$ROOT/rtl/top/sram_raw_source.sv" "$ROOT/rtl/memory/sram_reader.sv" \
-         "$ROOT/rtl/raw_domain/blc.sv" "$ROOT/rtl/raw_domain/awb_gain.sv")
-compile_vcs "$directory" tb_awb_pipeline "${sources[@]}"
-for size in 1x1 2x2 7x1 1x7 3x5 4x4; do
-    control_args "${size%x*}" "${size#*x}"
-    run_vcs_case "$directory" "controls_$size" '[PASS] AWB_PIPELINE' "${args[@]}" '+CASE=controls'
-done
-control_args 1 1
-for case_name in overflow overflow_large; do
-    expect_vcs_failure "$directory" "$case_name" 'SRAM_FRAME_TOO_LARGE:' "${args[@]}" "+CASE=$case_name"
-done
-expect_vcs_failure "$directory" forced_failure 'AWB_PIPELINE_FORCED_FAILURE' "${args[@]}" '+CASE=forced_failure'
-rm -f "$directory/missing-golden.mem"
-expect_vcs_failure "$directory" missing_golden 'AWB_GOLDEN_FILE_ERROR:' \
-    "${args[0]}" "+GOLDEN0=$directory/missing-golden.mem" "${args[2]}" '+WIDTH=1' '+HEIGHT=1' '+CASE=controls'
-# SYNTHESIS 构建只禁用仿真 fatal；必须仍拒绝两个超容量尺寸，并能重新启动合法帧。
-hardware_directory="$ROOT/build/p3_awb/pipeline_hardware"
-compile_vcs "$hardware_directory" tb_awb_pipeline +define+SYNTHESIS "${sources[@]}"
-run_vcs_case "$hardware_directory" capacity_reject '[PASS] AWB_PIPELINE' "${args[@]}" '+CASE=capacity_reject'
+    sources=("$ROOT/tb/integration/tb_awb_pipeline.sv" "$ROOT/tb/models/sram_model.sv" \
+             "$ROOT/rtl/top/isp_pipeline_top.sv" "$ROOT/rtl/top/blc_pipeline.sv" \
+             "$ROOT/rtl/top/sram_raw_source.sv" "$ROOT/rtl/memory/sram_reader.sv" \
+             "$ROOT/rtl/raw_domain/blc.sv" "$ROOT/rtl/raw_domain/awb_gain.sv")
+    compile_vcs "$directory" tb_awb_pipeline "${sources[@]}"
+    for size in 1x1 2x2 7x1 1x7 3x5 4x4; do
+        control_args "${size%x*}" "${size#*x}"
+        run_vcs_case "$directory" "controls_$size" '[PASS] AWB_PIPELINE' "${args[@]}" '+CASE=controls'
+    done
+    control_args 1 1
+    for case_name in overflow overflow_large; do
+        expect_vcs_failure "$directory" "$case_name" 'SRAM_FRAME_TOO_LARGE:' "${args[@]}" "+CASE=$case_name"
+    done
+    expect_vcs_failure "$directory" forced_failure 'AWB_PIPELINE_FORCED_FAILURE' "${args[@]}" '+CASE=forced_failure'
+    rm -f "$directory/missing-golden.mem"
+    expect_vcs_failure "$directory" missing_golden 'AWB_GOLDEN_FILE_ERROR:' \
+        "${args[0]}" "+GOLDEN0=$directory/missing-golden.mem" "${args[2]}" '+WIDTH=1' '+HEIGHT=1' '+CASE=controls'
+    # SYNTHESIS 构建只禁用仿真 fatal；必须仍拒绝两个超容量尺寸，并能重新启动合法帧。
+    hardware_directory="$ROOT/build/p3_awb/pipeline_hardware"
+    compile_vcs "$hardware_directory" tb_awb_pipeline +define+SYNTHESIS "${sources[@]}"
+    run_vcs_case "$hardware_directory" capacity_reject '[PASS] AWB_PIPELINE' "${args[@]}" '+CASE=capacity_reject'
 fi
 
 if [[ $selection != controls ]]; then
-for index in 0 1 2 3; do
-    pattern=${patterns[$index]}
-    dump_directory="$dump_root/$pattern"
-    if [[ $selection == all ]]; then
-        mkdir -p "$dump_directory"
-        rm -f "$dump_directory/frame_0.mem" "$dump_directory/frame_1.mem"
-        run_vcs_case "$directory" "$pattern" '[PASS] AWB_PIPELINE' \
-            "+MEM_FILE=$input_root/16x16/${pattern}_16x16.mem" \
-            "+GOLDEN0=$golden_root/$pattern/frame_0.mem" "+GOLDEN1=$golden_root/$pattern/frame_1.mem" \
-            "+BLACK0=${black_first[$index]}" "+BLACK1=${black_second[$index]}" \
-            "+R0=${r_first[$index]}" "+G0=${g_first[$index]}" "+B0=${b_first[$index]}" \
-            "+R1=${r_second[$index]}" "+G1=${g_second[$index]}" "+B1=${b_second[$index]}" \
-            "+DUMP_DIR=$dump_directory" '+CASE=regression'
-        # 测试开关只破坏首图案实际输出的 index=42，不碰黄金/输入；检验 Make 失败传播。
-        if [[ ${AWB_CORRUPT_OUTPUT:-0} == 1 && $index == 0 ]]; then
-            "$PYTHON" - "$dump_directory/frame_0.mem" <<'INJECT'
+    for index in 0 1 2 3; do
+        pattern=${patterns[$index]}
+        dump_directory="$dump_root/$pattern"
+        if [[ $selection == all ]]; then
+            mkdir -p "$dump_directory"
+            rm -f "$dump_directory/frame_0.mem" "$dump_directory/frame_1.mem"
+            run_vcs_case "$directory" "$pattern" '[PASS] AWB_PIPELINE' \
+                "+MEM_FILE=$input_root/16x16/${pattern}_16x16.mem" \
+                "+GOLDEN0=$golden_root/$pattern/frame_0.mem" "+GOLDEN1=$golden_root/$pattern/frame_1.mem" \
+                "+BLACK0=${black_first[$index]}" "+BLACK1=${black_second[$index]}" \
+                "+R0=${r_first[$index]}" "+G0=${g_first[$index]}" "+B0=${b_first[$index]}" \
+                "+R1=${r_second[$index]}" "+G1=${g_second[$index]}" "+B1=${b_second[$index]}" \
+                "+DUMP_DIR=$dump_directory" '+CASE=regression'
+            # 测试开关只破坏首图案实际输出的 index=42，不碰黄金/输入；检验 Make 失败传播。
+            if [[ ${AWB_CORRUPT_OUTPUT:-0} == 1 && $index == 0 ]]; then
+                "$PYTHON" - "$dump_directory/frame_0.mem" <<'INJECT'
 import sys
 from pathlib import Path
 path = Path(sys.argv[1])
@@ -107,12 +107,12 @@ words = path.read_text().splitlines()
 words[42] = '{:04x}'.format((int(words[42], 16) + 1) % 4096)
 path.write_text('\n'.join(words) + '\n')
 INJECT
+            fi
         fi
-    fi
-    # 每帧独立校验值、数量、格式；compare 不重新生成任何输入、黄金或实际输出。
-    for frame in 0 1; do
-        "$PYTHON" "$ROOT/tools/compare_output.py" --expected "$golden_root/$pattern/frame_$frame.mem" \
-            --actual "$dump_directory/frame_$frame.mem" --width 16
+        # 每帧独立校验值、数量、格式；compare 不重新生成任何输入、黄金或实际输出。
+        for frame in 0 1; do
+            "$PYTHON" "$ROOT/tools/compare_output.py" --expected "$golden_root/$pattern/frame_$frame.mem" \
+                --actual "$dump_directory/frame_$frame.mem" --width 16
+        done
     done
-done
 fi

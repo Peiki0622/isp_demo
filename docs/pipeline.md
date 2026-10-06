@@ -14,3 +14,9 @@
 10. AHB register block and Cortex-M0 integration
 
 Each stage must first match the Python golden model before it is enabled in the end-to-end path.
+
+P3 completes stages 1 through 3: SRAM -> Reader -> BLC -> AWB Gain.
+AWB here applies externally supplied UQ4.12 gains; automatic white-balance
+statistics and gain estimation are outside this implementation. P0/P1 C2
+and P2 C3 remain independent boundaries; the formal top outputs first at C4.
+See plans/003_p3_awb_gain.md and verification.md for completed acceptance.

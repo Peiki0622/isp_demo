@@ -58,9 +58,20 @@ Not frozen yet. Intended controls include image size, start/status, bypass bits,
 
 ## P2 public pipeline timing
 
-The Reader contract above remains unchanged in `sram_raw_source`. The formal
-`isp_pipeline_top` adds `black_level[PIXEL_W-1:0]` and one BLC register stage:
+The Reader contract above remains unchanged in `sram_raw_source`. The independent
+`blc_pipeline` adds `black_level[PIXEL_W-1:0]` and one BLC register stage:
 first output C3, last output/frame_done C(N+2) with busy=1, idle C(N+3).
 Capture the offset at BLC's valid sof edge (C3), not start; hold it for the frame.
 Top-level start filtering uses the complete pipeline busy, so an edge sampled
 while the last BLC output is draining is discarded even if Reader is idle.
+
+## P3 public pipeline timing
+
+The formal isp_pipeline_top wraps blc_pipeline and one AWB Gain register stage.
+Three 16-bit UQ4.12 gain_r/gain_g/gain_b inputs supplement black_level;
+4096 encodes unity. Accepted start is C0, BLC offset capture C3 and AWB
+three-gain capture C4. Final output occupies C4..C(N+3), with frame_done
+and busy both high on the last pixel; busy is zero at C(N+4). Each stage
+holds its own frame configuration. Whole-pipeline busy filters start, and
+busy-time edges are remembered even during AWB-only drain. Other SRAM
+layout, dimensions, capacity rejection and Reader timing remain unchanged.

@@ -61,4 +61,6 @@ Preserve Reader-only C2 as sram_raw_source and move the unchanged P2 C3
 implementation to blc_pipeline. The formal isp_pipeline_top adds AWB and its
 own external start history so the AWB drain period remains busy. No speculative
 retiming, bus, automatic AWB, further algorithm or synthesis/PPA claim is added.
-Default enables reflect completed stages; AWB is enabled only after acceptance.
+Default enables reflect completed stages: only BLC and AWB Gain are enabled.
+Small-frame integration golden files use their actual dimensions; reusing the
+first N pixels of a 16x16 golden would select wrong Bayer phases at odd widths.

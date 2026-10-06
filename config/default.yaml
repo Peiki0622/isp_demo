@@ -7,7 +7,7 @@ image:
 pipeline:
   blc: true
   raw_nr: false
-  awb_gain: false
+  awb_gain: true
   demosaic: false
   ccm: false
   rgb2ycbcr: false

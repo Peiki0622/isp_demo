@@ -23,4 +23,12 @@ threshold arithmetic, coordinates/flags, valid holes, invalid sof, frame-stable
 offsets, consecutive frames and reset. It also checks output before the sampling
 edge to expose combinational bypass. Logs and binaries are in `build/p2_blc/unit/`.
 P0/P1 top integration now targets `sram_raw_source` and retains all original
-cycle assertions independently of the formal BLC pipeline.
+cycle assertions independently of the formal ISP top.
+
+P3 adds tb_awb_gain.sv: make test-awb-unit checks 45,664 registered cycles,
+including exhaustive RAW12 inputs for eleven boundary gains, independent
+quotient/remainder rounding, all four RGGB positions, shared green, atomic
+frame gains, valid holes, invalid sof and reset unity. Hand-calculated cases
+check half-up and saturation before narrowing, while pre-edge checks reject
+zero/unity combinational bypass. Logs and binaries stay in build/p3_awb/unit.
+Forced fatal must propagate through Make even when simv returns zero.

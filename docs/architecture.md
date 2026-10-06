@@ -1,6 +1,6 @@
 # Architecture
 
-## Phase 1: standalone ISP pipeline
+## Phase 1 eventual standalone ISP pipeline
 
 ```text
 SRAM -> SRAM reader -> RAW domain -> RGB domain -> YCbCr domain -> output
@@ -16,7 +16,7 @@ See `memory_map.md` for the Source/Reader cycle contract.
 ## P2 implementation contract
 
 The Reader-only boundary is implemented by `sram_raw_source` without extra registers.
-The formal top implements `SRAM -> sram_raw_source -> blc -> RAW12 output`.
+The independent `blc_pipeline` implements `SRAM -> sram_raw_source -> blc -> RAW12 output`.
 Its added `black_level[PIXEL_W-1:0]` input configures the global offset.
 BLC consumes in_valid/in_pixel/in_x/in_y/in_sof/in_eol/in_frame_done and
 produces their registered out_* equivalents; coordinates remain 16 bits.
@@ -54,9 +54,9 @@ SRAM
 
 Cortex-M0 will configure the ISP through AHB (Advanced High-performance Bus) mapped registers. Pixel processing remains in the hardware pipeline.
 
-## P3 target interface and timing
+## P3 implemented interface and timing
 
-The formal top will implement `SRAM -> blc_pipeline -> awb_gain -> RAW12`.
+The formal top implements `SRAM -> blc_pipeline -> awb_gain -> RAW12`.
 The independent blc_pipeline preserves P2's C3 first pixel and all previous
 control assertions. AWB adds unsigned 16-bit gain_r/gain_g/gain_b ports and
 uses input x/y for RGGB phase selection. It outputs one registered stage
