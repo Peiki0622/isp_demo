@@ -670,7 +670,7 @@ Codex 每完成一步更新实际提交哈希。
 |---|---|---|---|---|
 | 0 | 完成 | 3c5e140ce36f7253ba0100225c52eebc67aa916e | make clean; make test-p3-awb | 当前版本完整 PASS；版本/日志见 reports/p4_demosaic_execution |
 | 1 | 完成 | 80d1225 | git diff --check; contract review | 接口、reflect、位宽和输出周期明确；默认仍关闭 |
-| 2 | 未开始 | — | — | — |
+| 2 | 完成 | 709c6c4 | make test-blc-model test-awb-model test-demosaic-model | 旧22项及新6项模型测试 PASS |
 | 3 | 未开始 | — | — | — |
 | 4 | 未开始 | — | — | — |
 | 5 | 未开始 | — | — | — |

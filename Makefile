@@ -27,7 +27,12 @@ patterns:
 	$(PYTHON) tools/generate_patterns.py --width 16 --height 16 --output testdata/synthetic
 
 test-tools:
-	$(PYTHON) -m unittest discover -s tools/tests -p 'test_*.py' -v
+	$(PYTHON) -m unittest discover -s tools/tests -p 'test_compare_output.py' -v
+	$(PYTHON) -m unittest discover -s tools/tests -p 'test_generate_patterns.py' -v
+
+# RGB 新工具不进入历史 Reader-only 的测试入口，避免引入跨阶段依赖。
+test-demosaic-tools:
+	$(PYTHON) -m unittest discover -s tools/tests -p 'test_rgb*.py' -v
 
 # 软件参考独立验收，标准库 unittest 不额外引入测试框架。
 test-blc-model:
