@@ -25,3 +25,18 @@ This repository is a reconstruction of an earlier internship project whose origi
 - Original fixed-point widths and coefficients
 
 These must be documented as reconstruction choices rather than historical facts.
+
+## P2 BLC reconstruction choices
+
+- Use one global, nonnegative RAW12 offset, rather than four Bayer offsets or
+  automatic estimation. This is an engineering choice, not a recovered fact
+  about the original internship implementation.
+- Capture configuration at valid sof, not start. Mid-frame input changes apply
+  only to the next frame; the first pixel must use the newly sampled value.
+- Preserve the verified Reader-only boundary as `sram_raw_source`; keep its
+  C0/C1/C2 timing independently testable when the formal top gains BLC.
+- Extend pipeline busy through the final BLC output. Filter external start
+  edges using the whole pipeline's busy, remembering busy-time transitions so
+  a high level held across completion cannot silently restart a frame.
+- Keep the current VCS flow and Python/NumPy dependencies. No bypass, further
+  algorithm, register bus or synthesis/PPA milestone is added in P2.

@@ -85,3 +85,26 @@ The final acceptance is `make clean`, a full `make test-p0-p1`, then a second fu
 run. The deterministic vectors and all ten principal frame dumps must have
 identical hashes. Compilation/simulation checks use VCS only; this milestone
 does not perform synthesis, timing analysis or make PPA claims.
+
+## P2 acceptance contract
+
+Retain all P0/P1 cycle assertions on the Reader-only `sram_raw_source`.
+The BLC unit oracle uses external stimulus and independent integer arithmetic;
+integration expected files come from the Python BLC reference, not a duplicate
+testbench algorithm. Tests drive on falling edges and check after NBA updates.
+
+Check offset 0/64/1024/4095 and legal threshold neighbors, exact one-register
+alignment of data/valid/x/y/all flags, bubbles, invalid sof, simultaneous 1x1
+flags, consecutive frames, frame-stable configuration and reset/restart.
+Use a nonzero first pixel across a configuration change to expose stale offsets.
+At top level additionally check C3 first output, C(N+2) last output with busy,
+C(N+3) idle, and start pulses during the BLC-only drain interval.
+
+Four 16x16 patterns run two frames each with offsets: addr_ramp 64/128,
+flat 1024/64, checker 512/4095, gradient 256/0. Each frame must have 256 pixels,
+one sof, 16 eol and one frame_done. Every valid coordinate and pixel is checked.
+No unknown data, extra pixels or invalid-cycle flags are allowed.
+
+Use the existing VCS process/log/unique-PASS verdict and watchdogs for P2.
+Forced fatal and corrupted-output cases must propagate failure to Make.
+Golden generation must stop on error rather than compare stale data.
