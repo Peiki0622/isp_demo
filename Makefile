@@ -46,6 +46,9 @@ test-awb-model:
 test-demosaic-model:
 	$(PYTHON) -m unittest discover -s model/tests -p 'test_demosaic*.py' -v
 
+test-window-3x3:
+	bash scripts/run_window_3x3.sh
+
 test-sram-model: patterns
 	bash scripts/run_unit_tests.sh model
 

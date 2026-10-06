@@ -672,7 +672,7 @@ Codex 每完成一步更新实际提交哈希。
 | 1 | 完成 | 80d1225 | git diff --check; contract review | 接口、reflect、位宽和输出周期明确；默认仍关闭 |
 | 2 | 完成 | 709c6c4 | make test-blc-model test-awb-model test-demosaic-model | 旧22项及新6项模型测试 PASS |
 | 3 | 完成 | 66c1507 | make test-tools test-demosaic-tools | 旧11项和新6项工具测试 PASS；RGB 文件严格校验 |
-| 4 | 未开始 | — | — | — |
+| 4 | 完成 | 43dc99b | make test-p3-awb; exact migration check | 完整 P0-P3 PASS；C4 与全部旧周期断言保留 |
 | 5 | 未开始 | — | — | — |
 | 6 | 未开始 | — | — | — |
 | 7 | 未开始 | — | — | — |
