@@ -587,7 +587,7 @@ Codex 每完成一步更新实际提交哈希。
 | 0 | 完成 | 0ef032e | make clean; make test-p2-blc | 当前 HEAD 全回归 PASS；版本存于 reports/p3_awb_execution |
 | 1 | 完成 | 6e9ca6461d5da3a9fd108914b678d76a65bed742 | git diff --check; manual contract review | UQ4.12、RGGB、帧首采样和一级流水已明确；AWB 待最终验收启用 |
 | 2 | 完成 | ef9813e18748307c942526a22c07cc891891aad5 | make test-blc-model test-awb-model | 11 项 P2 + 7 项 AWB 测试；11 个边界增益穷举全部 RAW12 |
-| 3 | 未开始 | — | — | — |
+| 3 | 完成 | 559d387fae4d9e5653da594b8930e83dc298a6a9 | make test-p2-blc | P0/P1 + P2 全通过；源码等价迁移，C3 断言未修改 |
 | 4 | 未开始 | — | — | — |
 | 5 | 未开始 | — | — | — |
 | 6 | 未开始 | — | — | — |
