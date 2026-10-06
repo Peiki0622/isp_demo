@@ -46,3 +46,19 @@ pixel arithmetic, coordinates, valid and flags. Source still uses the existing
 three-part Reader FSM; neither the top wrapper nor the single-stage
 BLC introduces an unnecessary FSM. Synthesizable additions contain no function,
 initialization, testbench system task or algorithm beyond BLC.
+
+## P3 AWB Gain reconstruction choices
+
+Use RGGB with three external UQ4.12 R/G/B gains and shared green, integer
+round-half-up and RAW12 saturation. This implements gain application only;
+automatic estimation, statistics and other Bayer patterns are outside P3.
+Capture gains atomically at valid sof, use new configuration for that first
+pixel and reset saved gains to unity. Keep one register stage with separate
+configuration, data, coordinates, valid and flag blocks, and no RTL functions.
+No new FSM is needed; the Reader retains its three-part FSM.
+
+Preserve Reader-only C2 as sram_raw_source and move the unchanged P2 C3
+implementation to blc_pipeline. The formal isp_pipeline_top adds AWB and its
+own external start history so the AWB drain period remains busy. No speculative
+retiming, bus, automatic AWB, further algorithm or synthesis/PPA claim is added.
+Default enables reflect completed stages; AWB is enabled only after acceptance.

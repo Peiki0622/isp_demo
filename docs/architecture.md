@@ -53,3 +53,19 @@ SRAM
 ## Phase 2: SoC reintegration
 
 Cortex-M0 will configure the ISP through AHB (Advanced High-performance Bus) mapped registers. Pixel processing remains in the hardware pipeline.
+
+## P3 target interface and timing
+
+The formal top will implement `SRAM -> blc_pipeline -> awb_gain -> RAW12`.
+The independent blc_pipeline preserves P2's C3 first pixel and all previous
+control assertions. AWB adds unsigned 16-bit gain_r/gain_g/gain_b ports and
+uses input x/y for RGGB phase selection. It outputs one registered stage
+with all data/coordinates/flags and no backpressure.
+
+For N pixels accepted at C0, requests remain C1..CN, Reader C2..C(N+1),
+BLC C3..C(N+2), final AWB C4..C(N+3). Final busy stays high through
+C(N+3) and becomes zero at C(N+4). BLC configuration captures at C3 and
+AWB configuration at C4, independently of C0. Top start filtering uses
+`blc_busy || final_valid` and remembers every external start sample, including
+busy cycles. Busy pulses and held-high start across completion cannot restart.
+Reset aborts all stages and clears the external start history.

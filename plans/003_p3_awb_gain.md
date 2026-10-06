@@ -2,7 +2,7 @@
 
 目标读者：Codex（代码代理）
 
-状态：待执行
+状态：执行中
 
 本轮目标：在已经通过 P0/P1 和 P2 验收的 SRAM → Reader → BLC（黑电平校正）链路后加入 AWB Gain（White Balance Gain，白平衡增益施加）模块，建立“RGGB 位置判定 → 固定点增益选择 → 乘法 → 舍入 → RAW12 饱和 → 一级寄存输出”的完整硬件与软件精确对拍闭环。
 
@@ -201,12 +201,12 @@ SRAM → blc_pipeline → awb_gain → final RAW stream
 
 # Step 0 — 重新验证 P2 基线
 
-- [ ] 回读 plans/002_p2_blc.md。
-- [ ] 回读当前 blc、isp_pipeline_top、awb_gain 占位代码和 Makefile。
-- [ ] make clean。
-- [ ] make test-p2-blc。
-- [ ] 保存当前 VCS/Python/NumPy 版本。
-- [ ] 确认工作区干净。
+- [x] 回读 plans/002_p2_blc.md。
+- [x] 回读当前 blc、isp_pipeline_top、awb_gain 占位代码和 Makefile。
+- [x] make clean。
+- [x] make test-p2-blc。
+- [x] 保存当前 VCS/Python/NumPy 版本。
+- [x] 确认工作区干净。
 
 验收：任何 P3 修改前，完整 P2 必须 PASS。
 
@@ -584,7 +584,7 @@ Codex 每完成一步更新实际提交哈希。
 
 | Step | 状态 | 提交 | 验证命令 | 备注 |
 |---|---|---|---|---|
-| 0 | 未开始 | — | — | — |
+| 0 | 完成 | 0ef032e | make clean; make test-p2-blc | 当前 HEAD 全回归 PASS；版本存于 reports/p3_awb_execution |
 | 1 | 未开始 | — | — | — |
 | 2 | 未开始 | — | — | — |
 | 3 | 未开始 | — | — | — |

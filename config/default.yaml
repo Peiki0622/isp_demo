@@ -7,10 +7,10 @@ image:
 pipeline:
   blc: true
   raw_nr: false
-  awb_gain: true
-  demosaic: true
-  ccm: true
-  rgb2ycbcr: true
+  awb_gain: false
+  demosaic: false
+  ccm: false
+  rgb2ycbcr: false
   chroma_nr: false
   hue: false
   lcc: false
@@ -18,9 +18,10 @@ pipeline:
 blc:
   offset: 0
 awb_gain:
-  r: 1.0
-  g: 1.0
-  b: 1.0
+  # 无符号 UQ4.12 寄存器编码：4096 = 1.0，范围 0..65535。
+  r: 4096
+  g: 4096
+  b: 4096
 ccm:
   matrix:
     - [1.0, 0.0, 0.0]

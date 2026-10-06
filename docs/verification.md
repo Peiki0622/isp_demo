@@ -155,3 +155,26 @@ golden/dump hashes, corruption failure and restoration. This task's evidence is
 in `reports/p2_blc_execution/`, preserved outside cleanable simulator databases.
 Compilation with SYNTHESIS defined is a functional simulation check, not a
 synthesis, timing, FPGA or PPA result.
+
+## P3 planned acceptance contract
+
+Keep P0/P1 C2 and P2 C3 regressions independently unchanged. Verify AWB
+against external integer stimulus at the unit boundary and Python BLC->AWB
+golden files at the full pipeline. Falling-edge input drive, pre-edge register
+hold checks and post-NBA checks must expose bypass or sideband misalignment.
+
+Cover both green phases, distinct R/B gains, zero/unity/half/fractional/max
+gains, rounding midpoint neighbors, saturation, continuous streams, valid
+holes, invalid sof, atomic frame configuration, consecutive 1x1 frames and
+synchronous reset. The formal top must check C4 first output, C(N+3) last
+output/busy and C(N+4) idle, AWB-only drain start pulses, held start, latched
+dimensions, zero/capacity rejection and reset/restart. Small-frame golden files
+must use their actual dimensions because RGGB phase depends on raster width.
+
+Four 16x16 patterns each run two independently configured frames with exactly
+256 pixels, one sof, 16 eol and one frame_done, plus external MEM comparison.
+Strict VCS verdicts, missing golden, forced fatal, corrupt actual output and
+failed golden generation must propagate nonzero. Final acceptance requires
+two full P3 regressions with identical deterministic vectors/golden/dump hashes.
+Artifacts stay in build/p3_awb and testdata/output/p3_awb; retained evidence
+stays in reports/p3_awb_execution outside cleanable simulator databases.
