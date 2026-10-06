@@ -50,7 +50,7 @@ An independent longint quotient/remainder oracle tests eleven matrices against
 rows detect transposition; signed16 extremes, product cancellation, fractional
 rounding, lower clamp and upper saturation are included. Checks cover two-stage
 pre-edge hold, metadata delay, valid holes/invalid sof, all-nine atomic capture,
-first-pixel new coefficients, deterministic random mid-frame disturbances,
+first-pixel new coefficients, deterministic mid-frame disturbances,
 consecutive 1x1 frames and reset in either stage. Busy covers both valid stages
 without blocking incoming pixels. Forced fatal is checked by log and unique
 PASS verdict, with binaries/logs isolated under build/p5_ccm/unit. Functions

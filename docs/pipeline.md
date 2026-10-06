@@ -37,4 +37,5 @@ sidebands equally. Coefficients are signed 16-bit integer codes with 12
 fractional bits. No offset, Gamma, CSC or extra retiming stage is introduced.
 Enable CCM in the default configuration only after full numerical acceptance.
 The complete initial P0-P5 regression passed before enabling the default integer
-identity CCM; final clean/two-round acceptance rechecks this configuration.
+identity CCM. Final clean followed by two complete P0-P5 runs passed with
+430 identical deterministic hashes, including 282 unchanged historical files.

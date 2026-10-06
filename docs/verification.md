@@ -364,3 +364,17 @@ actuals are under testdata/output/p5_ccm. Retained evidence is under
 reports/p5_ccm_execution and survives the P0-P5 clean whitelist. Optional PNG
 exports verify actual/golden before writing and round-trip all native images;
 Pillow is not a regression dependency. See p5_png_preview.md for commands.
+
+## P5 completed acceptance evidence
+
+Product revision `01711cd9fcde0a02501125af1a4cc2dbf4b5a09f` passed clean plus two complete P0-P5 runs and the
+independent P2/P3/P4/P5 comparison targets. Each round retained twenty compile
+contexts; all four P5 compile logs contain no Error/Warning. All 430 deterministic
+SHA256 values match between rounds, including the 282 unchanged Step0 files.
+Forced fatal, missing golden, failed generation and separate R/G/B full-target
+and compare failures were verified, followed by successful recovery. The raw
+unit forced-fatal process returned zero while the strict verdict correctly
+returned FAIL and Make returned 2. P4's seventeen PNG hashes were preserved
+through exporter changes; final P4/P5 export checks 51 PNGs and round-trips
+24 native frames. Commands, version/context, both full logs, negative results
+and hashes remain in reports/p5_ccm_execution; acceptance.txt indexes evidence.

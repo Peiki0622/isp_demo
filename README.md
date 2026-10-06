@@ -75,8 +75,8 @@ CCM_GOLDEN_INPUT=/absolute/missing.npy make test-ccm-pipeline
 日志集中于 `build/p5_ccm/`，输入/黄金/dump 位于
 `testdata/output/p5_ccm/{inputs,golden,integration}/`，持久证据位于
 `reports/p5_ccm_execution/`。`make clean` 只清理规定的 P0–P5 可重建产物，
-保留 reports 和其他运行目录。最终验收执行 clean 后连续两轮完整 P0–P5，
-并核对确定性文件哈希；详细记录见 [P5 计划](plans/005_p5_ccm.md)。
+保留 reports 和其他运行目录。最终 clean 后两轮完整 P0–P5 均 PASS，
+430 份确定性文件哈希一致且 282 份历史数据不变；详细记录见 [P5 计划](plans/005_p5_ccm.md)。
 
 ## 查看处理后的 PNG
 

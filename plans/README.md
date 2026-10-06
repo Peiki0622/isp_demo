@@ -19,22 +19,24 @@
 - 003_p3_awb_gain.md：SRAM → Reader → BLC → AWB Gain（白平衡增益施加），UQ4.12 整数增益、RGGB 相位、一级流水和帧首配置。最终记录提交：c75cba182f942d4d8337a885ce5b7e8f9fd7ed66。
 - 004_p4_demosaic_bilinear.md：SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → RGB12，3×3 reflect 窗口、尾部排空和 RGB 精确对拍。正式关闭提交：56af88c45669ab6da0e079e36989571116a56c05；随后 e769f67606b1c3251562e86199f5323e5f1eeb94 仅增加已验收 RGB 输出的 PNG 预览工具。
 
+- 005_p5_ccm.md：SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → CCM → RGB12，signed16/12 小数位、两级流水、帧级矩阵和全链精确对拍。产品验收提交：01711cd9fcde0a02501125af1a4cc2dbf4b5a09f；两轮完整 P0–P5 和 430 份确定性哈希检查通过。
+
 ## 当前已验证链路
 
-SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → RGB12。
+SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → CCM → RGB12。
 
-P4 已建立从 RAW 域进入 RGB 域所需的流式窗口、边界处理和尾部排空能力；当前仍未实现 CCM 之后的颜色空间链路。
+P5 已完成 RGB 域有符号矩阵、固定两级和排空控制；P4 的独立边界与历史结果保持不变。当前未实现 CCM 之后的 CSC/YCbCr 链路。
 
 ## 当前计划
 
-- 005_p5_ccm.md：实现 CCM（Color Correction Matrix，颜色校正矩阵）的 3×3 有符号固定点矩阵乘加。
+无进行中的计划；005_p5_ccm.md 已全部完成并记录实际提交与验收证据。
 
-P5 冻结为：
+P5 已实现并验证：
 
 - 9 个 signed 16-bit coefficient，12 个 fractional bits，4096 表示 +1.0；
 - RGB12 输入先显式零扩展为正 signed 数，再与 signed coefficient 相乘；
 - Stage 1 注册 9 个乘积；
-- Stage 2 做三个 signed accumulator、正数四舍五入、负值下限钳位和 RAW12 上限饱和；
+- Stage 2 做三个 signed accumulator、正数四舍五入、负值下限钳位和 RGB12 上限饱和；
 - 固定两级延迟，稳态仍为 1 RGB pixel/cycle；
 - 9 个系数在 valid+sof 原子采样，reset identity；
 - 新建 Demosaic-only 历史边界，P4 原有周期/结果不能被 P5 改写；

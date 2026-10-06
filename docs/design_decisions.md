@@ -98,3 +98,7 @@ Preserve current P4 behavior as demosaic_pipeline instead of shifting old
 assertions. Complete current-version P0-P4 acceptance precedes changes.
 The optional P5 PNG preview reuses P4 tooling and remains outside acceptance
 dependencies. No synthesis, physical timing or DSP/BRAM resource claim is made.
+
+After complete initial P0-P5 acceptance, enable default integer identity CCM.
+Clean and two further complete runs pass; retain 430 equal deterministic hashes
+and unchanged historical 282 files. Defaults add no new color algorithm.
