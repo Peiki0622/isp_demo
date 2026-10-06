@@ -6,7 +6,7 @@ export PYTHONDONTWRITEBYTECODE := 1
 
 .PHONY: help patterns test-tools test-sram-model test-sram-reader test-pipeline \
         test-p0-p1 compare-p0-p1 test-blc-model test-blc-unit test-blc-pipeline \
-        test-p2-blc compare-p2-blc test-awb-model test-awb-unit clean
+        test-p2-blc compare-p2-blc test-awb-model test-awb-unit test-awb-pipeline clean
 help:
 	@echo "make test-p2-blc       - complete P0/P1 plus BLC model/unit/integration regression"
 	@echo "make test-p0-p1        - independent Reader-only regression"
@@ -55,6 +55,9 @@ test-blc-unit:
 
 test-awb-unit:
 	bash scripts/run_awb_unit.sh
+
+test-awb-pipeline:
+	bash scripts/run_awb_pipeline.sh
 
 test-blc-pipeline: patterns
 	bash scripts/run_blc_pipeline.sh
