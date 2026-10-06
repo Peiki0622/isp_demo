@@ -52,6 +52,13 @@ test-window-3x3:
 test-demosaic-unit:
 	bash scripts/run_demosaic_unit.sh
 
+test-demosaic-pipeline:
+	bash scripts/run_demosaic_pipeline.sh
+
+# 只重查已有 RGB 文件，不覆盖坏输出或失效黄金。
+compare-p4-demosaic:
+	bash scripts/run_demosaic_pipeline.sh compare
+
 test-sram-model: patterns
 	bash scripts/run_unit_tests.sh model
 

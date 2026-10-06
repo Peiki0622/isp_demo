@@ -675,7 +675,7 @@ Codex 每完成一步更新实际提交哈希。
 | 4 | 完成 | 43dc99b | make test-p3-awb; exact migration check | 完整 P0-P3 PASS；C4 与全部旧周期断言保留 |
 | 5 | 完成 | 591e894 | make test-window-3x3 | 64帧22004窗口198036样本；宽4095/4096、复位、负例及硬件拒绝 PASS |
 | 6 | 完成 | e7b4314 | make test-demosaic-unit | 64帧2566 RGB像素7698通道；寄存/复位/负例/硬件拒绝 PASS |
-| 7 | 未开始 | — | — | — |
+| 7 | 完成 | ef237df | bash scripts/run_demosaic_pipeline.sh controls; make test-p3-awb | 70小帧/4类复位/尺寸容量拒绝 PASS；完整旧回归 PASS |
 | 8 | 未开始 | — | — | — |
 | 9 | 未开始 | — | — | — |
 
