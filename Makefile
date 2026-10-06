@@ -52,3 +52,8 @@ clean:
 # 每次重新编译并完整核对有效拍、空洞、配置边界和复位。
 test-blc-unit:
 	bash scripts/run_blc_unit.sh
+
+.PHONY: test-blc-pipeline
+# P2 集成使用与 P0/P1 相同的确定性输入，由独立 BLC 模型生成 expected。
+test-blc-pipeline: patterns
+	bash scripts/run_blc_pipeline.sh
