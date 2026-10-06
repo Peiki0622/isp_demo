@@ -1,25 +1,29 @@
-# 仅使用现有本机工具，允许显式覆盖可执行路径，不修改系统/许可证环境。
+# 使用容器现有工具；可显式覆盖可执行路径，不修改系统或许可证环境。
 PYTHON ?= python3
 VCS ?= vcs
 export PYTHON VCS
 export PYTHONDONTWRITEBYTECODE := 1
 
-.PHONY: help patterns test-tools test-sram-model test-sram-reader test-pipeline test-p0-p1 compare-p0-p1 clean
-.PHONY: test-blc-model
+.PHONY: help patterns test-tools test-sram-model test-sram-reader test-pipeline \
+        test-p0-p1 compare-p0-p1 test-blc-model test-blc-unit test-blc-pipeline \
+        test-p2-blc compare-p2-blc clean
 help:
-	@echo "make patterns          - generate four deterministic 16x16 RAW12 patterns"
-	@echo "make test-sram-reader  - VCS reader regression and exact dump comparison"
-	@echo "make test-p0-p1        - complete tools/model/reader/top regression"
-	@echo "make compare-p0-p1    - recheck existing top-level dumps"
-	@echo "make clean            - remove only P0/P1 generated artifacts"
+	@echo "make test-p2-blc       - complete P0/P1 plus BLC model/unit/integration regression"
+	@echo "make test-p0-p1        - independent Reader-only regression"
+	@echo "make test-blc-model    - integer golden model and golden-file CLI tests"
+	@echo "make test-blc-unit     - cycle-exact BLC unit regression"
+	@echo "make test-blc-pipeline - controls, reset, capacity and four-pattern two-frame comparison"
+	@echo "make compare-p2-blc    - recheck existing BLC frame dumps without regenerating"
+	@echo "make clean            - remove only named P0/P1 and P2 generated artifacts"
 
+# 输入向量保持 P0/P1 文件格式和命名；确定性 NPY 与 MEM 内容一一对应。
 patterns:
 	$(PYTHON) tools/generate_patterns.py --width 16 --height 16 --output testdata/synthetic
 
 test-tools:
 	$(PYTHON) -m unittest discover -s tools/tests -p 'test_*.py' -v
 
-# 软件黄金模型单独验收；使用标准库 unittest，不增加测试框架依赖。
+# 软件参考独立验收，标准库 unittest 不额外引入测试框架。
 test-blc-model:
 	$(PYTHON) -m unittest discover -s model/tests -p 'test_*.py' -v
 
@@ -29,10 +33,11 @@ test-sram-model: patterns
 test-sram-reader: patterns
 	bash scripts/run_unit_tests.sh reader
 
+# 保留旧入口名称；它现在测试无算法、无额外寄存的 SRAM RAW Source。
 test-pipeline: patterns
 	bash scripts/run_pipeline.sh
 
-# 顺序运行 EDA 回归，避免多个 VCS 运行竞争许可证或共享日志；每个环节失败即停止。
+# VCS 用例顺序执行，防止共享任务目录/许可证竞争；任一失败立即停止。
 test-p0-p1: patterns test-tools
 	bash scripts/run_unit_tests.sh
 	bash scripts/run_pipeline.sh
@@ -41,24 +46,28 @@ test-p0-p1: patterns test-tools
 compare-p0-p1:
 	bash scripts/run_pipeline.sh compare
 
-# 清理范围只包含本任务目录与四种命名图案，不删除其他仿真/用户数据目录。
-clean:
-	rm -rf build/p0_p1 testdata/output/p0_p1
-	@for pattern in addr_ramp flat checker gradient; do \
-		rm -f "testdata/synthetic/$${pattern}_16x16.mem" "testdata/synthetic/$${pattern}_16x16.npy" "testdata/synthetic/$${pattern}_16x16.json"; \
-	done
-
-.PHONY: test-blc-unit
-# 每次重新编译并完整核对有效拍、空洞、配置边界和复位。
 test-blc-unit:
 	bash scripts/run_blc_unit.sh
 
-.PHONY: test-blc-pipeline
-# P2 集成使用与 P0/P1 相同的确定性输入，由独立 BLC 模型生成 expected。
 test-blc-pipeline: patterns
 	bash scripts/run_blc_pipeline.sh
 
-.PHONY: compare-p2-blc
-# 只重新比较已有 P2 dump，不重新生成 expected 或掩盖被破坏的输出。
+# 不写成可并行的依赖列表：先完整验收 Source，再按顺序执行所有 BLC 环节。
+# 递归 Make 保留用户传入的 PYTHON/VCS 路径，同时向上传播非零退出状态。
+test-p2-blc:
+	$(MAKE) test-p0-p1
+	$(MAKE) test-blc-model
+	$(MAKE) test-blc-unit
+	$(MAKE) test-blc-pipeline
+	@echo "P2 BLC PASS"
+
+# compare 不重建 expected 或 dump，避免覆盖被破坏的输出后误报成功。
 compare-p2-blc:
 	bash scripts/run_blc_pipeline.sh compare
+
+# 清理只覆盖本项目规定的可重建产物；保留 reports 验收记录及其他运行目录。
+clean:
+	rm -rf build/p0_p1 build/p2_blc testdata/output/p0_p1 testdata/output/p2_blc
+	@for pattern in addr_ramp flat checker gradient; do \
+		rm -f "testdata/synthetic/$${pattern}_16x16.mem" "testdata/synthetic/$${pattern}_16x16.npy" "testdata/synthetic/$${pattern}_16x16.json"; \
+	done

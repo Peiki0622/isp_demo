@@ -55,3 +55,12 @@ pixels. The last address is held until a new accepted start or reset.
 ## ISP register map
 
 Not frozen yet. Intended controls include image size, start/status, bypass bits, BLC offset, channel gains, CCM coefficients, noise-reduction strength, hue controls, LCC controls, and edge-enhancement gain.
+
+## P2 public pipeline timing
+
+The Reader contract above remains unchanged in `sram_raw_source`. The formal
+`isp_pipeline_top` adds `black_level[PIXEL_W-1:0]` and one BLC register stage:
+first output C3, last output/frame_done C(N+2) with busy=1, idle C(N+3).
+Capture the offset at BLC's valid sof edge (C3), not start; hold it for the frame.
+Top-level start filtering uses the complete pipeline busy, so an edge sampled
+while the last BLC output is draining is discarded even if Reader is idle.

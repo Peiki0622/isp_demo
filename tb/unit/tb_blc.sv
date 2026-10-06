@@ -114,7 +114,7 @@ module tb_blc;
         drive(1, 4095, 0, 1, 1, 1, 0, 0);
 
         // 确定性长序列混合有效空洞、帧内配置变化和行/帧标志。
-        // 地址和像素通过独立整数生成，覆盖 RAW12 全区间，保持可复现。
+        // 坐标和像素通过独立整数生成，覆盖 RAW12 全区间，保持可复现。
         for (int frame = 0; frame < 8; frame++) begin
             for (int index = 0; index < 64; index++) begin
                 if (index % 7 == 3)

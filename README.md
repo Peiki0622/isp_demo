@@ -4,31 +4,41 @@
 
 ## 当前进度与最短运行命令
 
-P0/P1 已完成：确定性图案 → 一周期同步 SRAM → SRAM Reader → 顶层 RAW
-像素流 → 两帧独立 dump → 精确逐像素比较。Reader 使用三段式状态机，锁存尺寸，
-处理读延迟、坐标、行帧标志和复位；顶层尚未接入 BLC 或后续算法。
+P0/P1 与 P2 BLC 已完成：确定性图案 → 一周期同步 SRAM → Reader →
+一级 BLC → RAW12 像素流 → 每帧独立 dump → Python 黄金模型精确逐像素比较。
+BLC 使用单一全局偏置，计算 `max(pixel - black_level, 0)`，在有效首像素
+采样配置；帧中修改只影响下一帧。当前链路尚未实现后续 ISP 算法。
 
-在仓库根目录执行：
+在仓库根目录执行完整验收：
 
 ```sh
-make test-p0-p1
+make test-p2-blc
 ```
 
-依赖本机现有 `vcs`、Python 3、NumPy、Make 和 Bash；本轮验证使用 VCS
-W-2024.09、Python 3.6.6、NumPy 1.19.5。可用 `make test-p0-p1 VCS=/path/to/vcs
-PYTHON=/path/to/python3` 显式指定已安装的工具，不配置或修改许可证环境。
+命令先执行独立 Reader-only P0/P1，再运行 BLC 软件模型、一级流水单元回归、
+顶层控制/复位/容量测试和四种 16×16 图案各两帧的精确对拍。
+包含 11 项工具测试与 11 项模型/黄金文件测试；全部环节通过才打印
+`P2 BLC PASS`。错误或 VCS fatal 即使原始退出码为零，也会由脚本判失败。
 
-命令包含 11 项 Python 工具测试、SRAM 模型测试、Reader 边界回归、四种
-16×16 图案各两帧的顶层仿真与精确比较，全部通过才打印 `P0/P1 PASS`。
-任何失败都返回非零；VCS 的 `$fatal` 即使返回 0，也会被运行脚本识别。
+依赖容器已有 VCS W-2024.09、Python 3.6.6、NumPy 1.19.5、Make 和 Bash。
+可通过 `VCS=/path/to/vcs PYTHON=/path/to/python3` 覆盖工具路径。
+软件模型使用普通配置字典，不依赖 PyYAML。
 
-`make patterns` 只生成向量，`make test-sram-reader` 单独验证 Reader，
-`make compare-p0-p1` 重新比较已有顶层 dump。编译、日志、版本和命令记录集中在
-`build/p0_p1/`，像素 dump 集中在 `testdata/output/p0_p1/`，可重建向量位于
-`testdata/synthetic/`。`make clean` 只清理这些任务产物，不清空其他运行目录。
+可分别运行 `make test-p0-p1`、`make test-blc-model`、`make test-blc-unit`、
+`make test-blc-pipeline`；`make compare-p0-p1` 和 `make compare-p2-blc`
+只重查已有产物。BLC 后首像素为 C3，末像素和 frame_done 同拍且 busy=1，
+下一周期 busy 解除；Source 独立回归仍保持 C2 首像素。
 
-周期约定见 `docs/memory_map.md`，验收方法及证据位置见 `docs/verification.md`，
-逐步执行记录见 `plans/001_p0_p1_sram_bootstrap.md`。
+编译、版本、命令和仿真日志统一存于 `build/p0_p1/`、`build/p2_blc/`；
+黄金与实际数据位于 `testdata/output/p2_blc/golden/` 和 `integration/`。
+`make clean` 仅删除规定的任务产物和四种生成图案，保留其他目录和 reports。
+本轮两次验收、哈希及失败负例证据保存在 `reports/p2_blc_execution/`。
+
+人为破坏比较链路：`BLC_CORRUPT_OUTPUT=1 make test-p2-blc` 必须非零退出，
+报告第 42 个像素差异。取消该变量后重新运行可恢复正确产物。
+
+数值、周期和验证说明分别见 `docs/fixed_point.md`、`docs/architecture.md`、
+`docs/verification.md`；逐步骤提交和验收记录见 `plans/002_p2_blc.md`。
 
 ## 后续完整 ISP 目标
 

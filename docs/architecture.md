@@ -8,18 +8,15 @@ SRAM -> SRAM reader -> RAW domain -> RGB domain -> YCbCr domain -> output
 
 The first milestone deliberately excludes SD-card input and Cortex-M0 control so that the pixel datapath can be verified independently.
 
-P0/P1 implements only `SRAM -> sram_reader -> RAW pixel stream` in
-`isp_pipeline_top`. Its public outputs include data, valid, x/y, sof/eol,
-frame_done and busy. The synchronous SRAM latency is handled inside the reader;
-the top adds no pipeline stage or algorithm. BLC and the later datapath below
-remain outside this milestone. See `memory_map.md` for the cycle-level contract.
-
-## Planned datapath
+P0/P1's verified `SRAM -> sram_reader -> RAW pixel stream` is now exposed
+through `sram_raw_source`. This wrapper adds no registers or algorithm and
+retains the C2 first-pixel contract independently of the formal ISP top.
+See `memory_map.md` for the Source/Reader cycle contract.
 
 ## P2 implementation contract
 
-The Reader-only boundary moves to `sram_raw_source` without extra registers.
-The formal top becomes `SRAM -> sram_raw_source -> blc -> RAW12 output`.
+The Reader-only boundary is implemented by `sram_raw_source` without extra registers.
+The formal top implements `SRAM -> sram_raw_source -> blc -> RAW12 output`.
 Its added `black_level[PIXEL_W-1:0]` input configures the global offset.
 BLC consumes in_valid/in_pixel/in_x/in_y/in_sof/in_eol/in_frame_done and
 produces their registered out_* equivalents; coordinates remain 16 bits.

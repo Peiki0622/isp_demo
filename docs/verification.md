@@ -108,3 +108,50 @@ No unknown data, extra pixels or invalid-cycle flags are allowed.
 Use the existing VCS process/log/unique-PASS verdict and watchdogs for P2.
 Forced fatal and corrupted-output cases must propagate failure to Make.
 Golden generation must stop on error rather than compare stale data.
+
+## P2 reproducible commands and evidence
+
+```sh
+make test-p2-blc
+make test-blc-model
+make test-blc-unit
+make test-blc-pipeline
+make compare-p2-blc
+```
+
+The complete entry runs P0/P1 first, then 11 Python model/CLI tests, the BLC
+unit regression, top-level controls and four-pattern two-frame exact comparison.
+The unit also checks output stability before the register edge, invalid sof,
+back-to-back 1x1 frames, eight deterministic 64-pixel frames with valid holes,
+and synchronous reset while valid. Top controls check 12 small frames, zero-size
+rejection, held start, start pulses at final output and the BLC-only drain edge,
+mid-frame size changes, reset/restart and exact address-capacity rejection.
+Ordinary and SYNTHESIS-defined top builds verify both capacity overflow cases;
+the latter proves hardware rejection independently of simulation diagnostics.
+
+`build/p2_blc/unit/`, `pipeline/` and `pipeline_hardware/` retain the exact VCS
+version, command, work directory, compile log and per-case checked verdicts.
+`testdata/output/p2_blc/golden/<pattern>/frame_{0,1}.mem` and
+`integration/<pattern>/frame_{0,1}.mem` are independently compared per frame.
+The existing Git ignore rules cover all these generated files; no new ignore
+pattern is needed. Clean removes only the named P0/P1 and P2 task directories
+and four generated input patterns, preserving reports and other runs.
+
+Normal tests require process exit zero, no fatal/error, and exactly one complete
+PASS marker. Isolated forced-fatal, missing-golden and overflow cases require
+specific fatal diagnostics and no normal PASS. Golden-file CLI tests confirm
+invalid offsets/missing inputs fail and stale targets are removed.
+
+To test propagation through the complete chain, run
+`BLC_CORRUPT_OUTPUT=1 make test-p2-blc`: the first pattern's frame 0 dump pixel 42
+is changed after simulation and before comparison, so Make must exit nonzero
+and report index=42, x=10, y=2. `make compare-p2-blc` must also fail on that dump.
+Restore it with `make test-blc-pipeline` without the injection variable.
+`BLC_CASE=forced_failure make test-blc-unit` separately demonstrates that the
+installed VCS's zero process exit after fatal cannot bypass the wrapper verdict.
+
+Final acceptance is clean, two complete `make test-p2-blc` runs, identical vector/
+golden/dump hashes, corruption failure and restoration. This task's evidence is
+in `reports/p2_blc_execution/`, preserved outside cleanable simulator databases.
+Compilation with SYNTHESIS defined is a functional simulation check, not a
+synthesis, timing, FPGA or PPA result.

@@ -17,3 +17,10 @@ All transient files are kept in `build/p0_p1/` and `testdata/output/p0_p1/`.
 Add one testbench per RTL algorithm block, for example `tb_blc.sv`, `tb_awb_gain.sv`, `tb_demosaic.sv`, `tb_ccm.sv`, and `tb_rgb2ycbcr.sv`.
 
 Each testbench should consume deterministic vectors that can also be processed by the Python golden model.
+
+P2 adds `tb_blc.sv`: `make test-blc-unit` verifies exact registered latency,
+threshold arithmetic, coordinates/flags, valid holes, invalid sof, frame-stable
+offsets, consecutive frames and reset. It also checks output before the sampling
+edge to expose combinational bypass. Logs and binaries are in `build/p2_blc/unit/`.
+P0/P1 top integration now targets `sram_raw_source` and retains all original
+cycle assertions independently of the formal BLC pipeline.

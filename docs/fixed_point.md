@@ -23,3 +23,9 @@ With invalid output, all three flags are zero; payload may hold its last value.
 Only valid sof samples the frame offset. The first pixel uses the external
 offset sampled at that edge, while subsequent pixels use the saved offset.
 Synchronous active-low reset clears the offset and all output registers.
+
+The software API is `model.blc.apply_blc(raw, black_level)`: a scalar returns
+Python int and an array returns a new same-shape uint16 array. Reject floating
+pixels, invalid RAW12 ranges and non-integer/invalid offsets before arithmetic.
+`model.isp_model.run_pipeline` reads `pipeline.blc` (default false) and
+`blc.offset` (default zero) from a caller-provided dictionary.

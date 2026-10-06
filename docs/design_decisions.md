@@ -40,3 +40,9 @@ These must be documented as reconstruction choices rather than historical facts.
   a high level held across completion cannot silently restart a frame.
 - Keep the current VCS flow and Python/NumPy dependencies. No bypass, further
   algorithm, register bus or synthesis/PPA milestone is added in P2.
+
+The implementation uses separate register blocks for frame configuration,
+pixel arithmetic, coordinates, valid and flags. Source still uses the existing
+three-part Reader FSM; neither the top wrapper nor the single-stage
+BLC introduces an unnecessary FSM. Synthesizable additions contain no function,
+initialization, testbench system task or algorithm beyond BLC.
