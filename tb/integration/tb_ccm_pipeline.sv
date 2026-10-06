@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-// P5 公开 RGB 接口验收：精确尺寸相关周期，黄金来自原始 SRAM 经 Python BLC->AWB->Demosaic。
+// P5 公开 RGB 接口验收：精确尺寸相关周期，黄金来自原始 SRAM 经 Python BLC->AWB->Demosaic->CCM。
 // 控制/复位回归和四图案两帧回归共享本平台，但不访问 DUT 内部状态。
 module tb_ccm_pipeline;
     // 时钟、同步复位、帧尺寸和配置接口：下降沿驱动避免 NBA 竞态。
@@ -7,7 +7,7 @@ module tb_ccm_pipeline;
     logic [15:0] image_width = 0, image_height = 0;
     logic [11:0] black_level = 0;
     logic [15:0] gain_r = 4096, gain_g = 4096, gain_b = 4096;
-    // 两帧完整矩阵配置；Stage6默认identity，Stage7由整数plusargs指定。
+    // 两帧完整矩阵配置：整数plusargs与Python CLI共享同一组row-major编码。
     int matrices [0:1][0:2][0:2];
     logic signed [15:0] external_matrix [0:2][0:2];
     task automatic set_matrix(input int frame_index);
@@ -105,7 +105,9 @@ module tb_ccm_pipeline;
             if (fd == 0) $fatal(1, "CCM_PIPELINE cannot create dump");
         end
         @(negedge clk);
-        image_width = 16'(width); image_height = 16'(height); start = 1; set_matrix(frame_index);
+        image_width = 16'(width); image_height = 16'(height); start = 1;
+        // C0矩阵故意错误，CCM应该直到C(W+8)才采样，而不是随start锁存。
+        for(int row=0;row<3;row++) for(int col=0;col<3;col++) external_matrix[row][col]=-32768;
         // 故意在 start 沿提供错误配置；C3 前才改成目标，证明不在 C0 锁存。
         black_level = 12'(4095-wanted_black);
         gain_r = 16'(65535-wanted_r); gain_g = 16'(65535-wanted_g);
@@ -135,6 +137,11 @@ module tb_ccm_pipeline;
                 gain_g = 16'((cycle*619+65535-wanted_g)%65536);
                 gain_b = 16'((cycle*337+65535-wanted_b)%65536);
             end
+            // 前级首RGB出现在C(W+7)，CCM在下一沿C(W+8)消费并原子采样。
+            // 随后每拍扰动全部九个外部端口，但当前帧黄金必须保持原矩阵。
+            if (cycle==width+8) set_matrix(frame_index);
+            if (cycle>=width+9) for(int row=0;row<3;row++) for(int col=0;col<3;col++)
+                external_matrix[row][col]=16'(cycle*997+row*1237+col*619);
             if (mode == 3 && cycle == 2) begin
                 image_width = 0; image_height = 65535;
             end
@@ -204,9 +211,11 @@ module tb_ccm_pipeline;
     endtask
 
     initial begin
-        // 默认identity与P4黄金完全等价，完整P5矩阵用例在同一平台继续扩展。
+        // 未提供矩阵参数时identity；脚本给每帧全部九个有符号整数参数。
         for(int frame=0;frame<2;frame++) for(int row=0;row<3;row++) for(int col=0;col<3;col++)
             matrices[frame][row][col]=(row==col)?4096:0;
+        for(int frame=0;frame<2;frame++) for(int row=0;row<3;row++) for(int col=0;col<3;col++)
+            void'($value$plusargs($sformatf("M%0d_%0d=%%d",frame,row*3+col),matrices[frame][row][col]));
         set_matrix(0);
         selected_case = "regression";
         void'($value$plusargs("CASE=%s", selected_case));

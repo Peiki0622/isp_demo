@@ -9,7 +9,7 @@ export PYTHONDONTWRITEBYTECODE := 1
         test-p2-blc compare-p2-blc test-awb-model test-awb-unit test-awb-pipeline \
         test-p3-awb compare-p3-awb test-demosaic-tools test-demosaic-model \
         test-window-3x3 test-demosaic-unit test-demosaic-pipeline \
-        test-p4-demosaic compare-p4-demosaic test-ccm-model test-ccm-unit clean
+        test-p4-demosaic compare-p4-demosaic test-ccm-model test-ccm-unit test-ccm-pipeline test-p5-ccm compare-p5-ccm clean
 help:
 	@echo "make test-p4-demosaic  - complete P0-P3 and P4 tools/model/window/RGB regression"
 	@echo "make test-window-3x3   - all nine samples, continuous schedule and maximum widths"
@@ -59,6 +59,20 @@ test-ccm-model:
 
 test-ccm-unit:
 	bash scripts/run_ccm_unit.sh
+
+# P5入口顺序包含完整历史回归，任一阶段失败停止；视觉工具不作为依赖。
+test-ccm-pipeline:
+	bash scripts/run_ccm_pipeline.sh
+
+compare-p5-ccm:
+	bash scripts/run_ccm_pipeline.sh compare
+
+test-p5-ccm:
+	$(MAKE) test-p4-demosaic
+	$(MAKE) test-ccm-model
+	$(MAKE) test-ccm-unit
+	$(MAKE) test-ccm-pipeline
+	@echo "P5 CCM PASS"
 
 test-window-3x3:
 	bash scripts/run_window_3x3.sh
