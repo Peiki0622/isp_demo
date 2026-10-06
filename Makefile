@@ -37,6 +37,10 @@ test-blc-model:
 test-awb-model:
 	$(PYTHON) -m unittest discover -s model/tests -p 'test_awb*.py' -v
 
+# P4 软件入口独立于旧 RAW 模型测试，包含后续全链黄金 CLI 用例。
+test-demosaic-model:
+	$(PYTHON) -m unittest discover -s model/tests -p 'test_demosaic*.py' -v
+
 test-sram-model: patterns
 	bash scripts/run_unit_tests.sh model
 

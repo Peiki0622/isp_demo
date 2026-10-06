@@ -317,12 +317,12 @@ P4 必须保留：
 
 动作：
 
-- [ ] 写入 3×3 bilinear 公式和位宽。
-- [ ] 明确 mirror border。
-- [ ] 明确 W>=2、H>=2。
-- [ ] 明确 P4 输出 RGB12。
-- [ ] 明确本阶段不是 Malvar-He-Cutler。
-- [ ] config.default 仍保持 demosaic=false，直到 Step 8 完整验收后才改为 true。
+- [x] 写入 3×3 bilinear 公式和位宽。
+- [x] 明确 mirror border。
+- [x] 明确 W>=2、H>=2。
+- [x] 明确 P4 输出 RGB12。
+- [x] 明确本阶段不是 Malvar-He-Cutler。
+- [x] config.default 仍保持 demosaic=false，直到 Step 8 完整验收后才改为 true。
 
 建议提交信息：
 
@@ -669,7 +669,7 @@ Codex 每完成一步更新实际提交哈希。
 | Step | 状态 | 提交 | 验证命令 | 备注 |
 |---|---|---|---|---|
 | 0 | 完成 | 3c5e140ce36f7253ba0100225c52eebc67aa916e | make clean; make test-p3-awb | 当前版本完整 PASS；版本/日志见 reports/p4_demosaic_execution |
-| 1 | 未开始 | — | — | — |
+| 1 | 完成 | 80d1225 | git diff --check; contract review | 接口、reflect、位宽和输出周期明确；默认仍关闭 |
 | 2 | 未开始 | — | — | — |
 | 3 | 未开始 | — | — | — |
 | 4 | 未开始 | — | — | — |
