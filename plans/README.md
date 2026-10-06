@@ -18,36 +18,38 @@
 - 002_p2_blc.md：SRAM → Reader → BLC（黑电平校正），帧级偏置采样、一级侧带流水、独立 Reader-only 回归与 Python 精确对拍。最终记录提交：99bacf2d196fd10eef13271c6e71f230af32cdf4。
 - 003_p3_awb_gain.md：SRAM → Reader → BLC → AWB Gain（白平衡增益施加），UQ4.12 整数增益、RGGB 相位、一级流水和帧首配置。最终记录提交：c75cba182f942d4d8337a885ce5b7e8f9fd7ed66。
 - 004_p4_demosaic_bilinear.md：SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → RGB12，3×3 reflect 窗口、尾部排空和 RGB 精确对拍。正式关闭提交：56af88c45669ab6da0e079e36989571116a56c05；随后 e769f67606b1c3251562e86199f5323e5f1eeb94 仅增加已验收 RGB 输出的 PNG 预览工具。
-
-- 005_p5_ccm.md：SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → CCM → RGB12，signed16/12 小数位、两级流水、帧级矩阵和全链精确对拍。产品验收提交：01711cd9fcde0a02501125af1a4cc2dbf4b5a09f；两轮完整 P0–P5 和 430 份确定性哈希检查通过。
+- 005_p5_ccm.md：SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → CCM → RGB12，signed16/12 小数位、两级流水、帧级矩阵和全链精确对拍。产品验收提交：01711cd9fcde0a02501125af1a4cc2dbf4b5a09f；正式关闭提交：185d6e9441c0107d581fb89c217ef58261a77172。
 
 ## 当前已验证链路
 
 SRAM → Reader → BLC → AWB Gain → Bilinear Demosaic → CCM → RGB12。
 
-P5 已完成 RGB 域有符号矩阵、固定两级和排空控制；P4 的独立边界与历史结果保持不变。当前未实现 CCM 之后的 CSC/YCbCr 链路。
+P5 已完成 RGB 域有符号矩阵乘加、两级流水、帧级矩阵采样和完整排空控制；独立 Demosaic-only 历史边界继续保留。
 
 ## 当前计划
 
-无进行中的计划；005_p5_ccm.md 已全部完成并记录实际提交与验收证据。
+- 006_p6_csc_bt601_full_range.md：实现 RGB12 → YCbCr12 CSC（Color Space Conversion，颜色空间转换），正式从 RGB 域进入亮度/色度域。
 
-P5 已实现并验证：
+P6 冻结为：
 
-- 9 个 signed 16-bit coefficient，12 个 fractional bits，4096 表示 +1.0；
-- RGB12 输入先显式零扩展为正 signed 数，再与 signed coefficient 相乘；
-- Stage 1 注册 9 个乘积；
-- Stage 2 做三个 signed accumulator、正数四舍五入、负值下限钳位和 RGB12 上限饱和；
-- 固定两级延迟，稳态仍为 1 RGB pixel/cycle；
-- 9 个系数在 valid+sof 原子采样，reset identity；
-- 新建 Demosaic-only 历史边界，P4 原有周期/结果不能被 P5 改写；
-- Python 全链 BLC → AWB → Demosaic → CCM 与 RGB36 精确对拍。
+- 使用 BT.601 亮度/色度系数；
+- 使用 JPEG 风格 full-range（全范围）数字编码，而不是 limited-range；
+- RGB12 输入和 YCbCr12 输出范围均为 0..4095；
+- Cb/Cr 中性色度中点固定为 2048；
+- 9 个 CSC 系数采用 signed 整数、12 个小数位，RTL 中固定为常量；
+- Stage 1 注册 9 个乘积，Stage 2 做累加、色度 offset、round-half-up 和 12 位上下限钳位；
+- 固定两级延迟，稳态仍为 1 pixel/cycle；
+- 新建 CCM-only 历史边界，P5 原有 RGB 结果和周期不得被 P6 改写；
+- 新增 YCbCr36 精确比较，黄金链路为 BLC → AWB → Demosaic → CCM → RGB2YCbCr。
 
-P5 不实现 Gamma、CSC、YCbCr 或 Raw NR。
+该标准/range 是复现工程选择，不声称原实习项目已确认使用 BT.601 full-range。
+
+P6 不加入 Gamma、Chroma NR、Hue、LCC、Edge Enhancement 或 Raw NR。
 
 ## 后续方向
 
-P5 完整验收后，默认优先进入 CSC（Color Space Conversion，颜色空间转换），把 RGB12 转为数字 YCbCr，并明确标准、range、offset、定点系数和饱和规则。
+P6 完整验收以后再决定 P7。
 
-是否在 CCM 与 CSC 之间额外加入 Gamma，要在 P5 完成后重新依据原始框图和复现目标判断；原始框图未明确 Gamma，因此不能仅因为开源 ISP 常见就自动加入。
+如果优先继续色度点运算，可评估 Hue（色相）；如果优先继续学习亮度空间算法，可评估 Edge Enhancement（边缘增强）。Chroma NR 和 LCC 的具体算法必须先重新冻结，不能从框图名称直接推断实现。
 
-Raw NR（原始域降噪）继续保持旁路，待 RGB 主干稳定后作为独立 RAW-domain 里程碑插回并回归。
+Raw NR（原始域降噪）继续保持独立待办，后续作为 RAW-domain 回插里程碑处理。
